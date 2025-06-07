@@ -1,0 +1,32 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+!specs
+
+# Environment variables
+.env
+
+# Audio/transcription outputs
+audio_output/
+transcriptions/
+
+# Swift build files
+.build/
+
+# Logs and metrics
+logs/
+metrics/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
