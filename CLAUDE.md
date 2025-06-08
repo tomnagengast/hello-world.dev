@@ -8,6 +8,8 @@ For details on the project's app functionality, refer to @README.md
 
 @pyproject.toml project dependencies
 @.claude/commands for user-defined claude commands
+@https://docs.anthropic.com/en/docs/claude-code/sdk
+@https://docs.anthropic.com/en/docs/claude-code/cli-usage
 
 ## Development Philosophy
 
