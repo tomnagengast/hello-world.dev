@@ -32,6 +32,6 @@ FEATURE_OR_PLAN: $ARGUMENTS
   - Workers should run using Claude Sonnet with `claude --model sonnet`
 - Use TMUX for session management
   - When creating sessions, use the current sessions name followed by the branch. So if you're running in `app:2` the sessions will be in `app/<workstream-branch>`. This will help keep things organized when list all tmux session alphabetically
-  - Auto approve the initial Claude Code prompt with `tmux new -d -s <workstream-branch> 'claude --model sonnet'; sleep 1; tmux send -t <workstream-branch> Enter;`
-  - If sessions need direction or response, communicate with them with `tmux send -t <workstream-branch> <message> Esc Enter`
-  - Check in on sessions periodically to check progress, if they're taking the wrong approach, interrupt them with `tmux send -t <workstream-branch> Esc; tmux send -t <workstream-branch> <message> Esc Enter`
+  - Auto approve the initial Claude Code prompt with `tmux new -d -s "<workstream-branch>" "claude --model sonnet"; sleep 1; tmux send -t "<workstream-branch>" Enter;`
+  - If sessions need direction or response, communicate with them with `tmux send -t "<workstream-branch>" "<message>"; tmux send -t "<workstream-branch>" Enter`
+  - Check in on sessions periodically to check progress, if they're taking the wrong approach, interrupt them with `tmux send -t "<workstream-branch>" Esc; tmux send -t "<workstream-branch>" "<message>"; tmux send -t "<workstream-branch>" Enter`
