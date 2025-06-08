@@ -330,12 +330,17 @@ def providers():
     click.echo("Example: conversation start --ai-provider gemini")
 
 
+# Import AI command
+from .ai import ai
+
+
 # Create CLI group
 cli = click.Group()
 cli.add_command(main, name="start")
 cli.add_command(metrics)
 cli.add_command(conversations)
 cli.add_command(providers)
+cli.add_command(ai)
 
 
 if __name__ == "__main__":
