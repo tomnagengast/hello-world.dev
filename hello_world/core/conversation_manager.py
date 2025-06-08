@@ -276,19 +276,18 @@ class ConversationManager:
                         self.ai_provider.stop_streaming()
                         break
                         
-                    # Add to response queue if not final
-                    if not response_chunk.is_final:
-                        self.response_queue.put(response_chunk)
-                        
                     # Record first token latency
                     if self.metrics_collector and response_chunk.is_first and not first_token_recorded:
                         latency_ms = (time.time() - start_time) * 1000
                         self.metrics_collector.record_ai_latency(latency_ms)
                         first_token_recorded = True
                         
-                    # Accumulate full response
+                    # Accumulate full response and send to TTS when complete
                     if response_chunk.is_final:
                         full_response = response_chunk.full_text
+                        if full_response:
+                            # Send complete response to TTS queue
+                            self.response_queue.put(response_chunk)
                         
                 # Record completed interaction
                 if self.metrics_collector and full_response:
@@ -321,14 +320,16 @@ class ConversationManager:
                 except Empty:
                     continue
                     
-                logger.debug("Processing TTS response", text=response.text[:50])
+                # Get the text content (final responses use full_text)
+                text_to_speak = response.full_text if response.is_final else response.text
+                logger.debug("Processing TTS response", text=text_to_speak[:50])
                 self.tts_playing = True
                 start_time = time.time()
                 first_audio_recorded = False
                 
                 try:
                     # Stream TTS audio
-                    for audio_chunk in self.tts_provider.stream_audio(response.text):
+                    for audio_chunk in self.tts_provider.stream_audio(text_to_speak):
                         if not self.is_running or self.shutdown_event.is_set():
                             break
                             
