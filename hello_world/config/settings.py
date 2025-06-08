@@ -43,9 +43,14 @@ class ProviderSettings:
     gemini_max_tokens: int = 2048
     
     # ElevenLabs
-    elevenlabs_voice_id: str = "pNInz6obpgDQGcFmaJgB"
+    elevenlabs_voice_id: str = "pNInz6obpgDQGcFmaJgB"  # Adam voice
     elevenlabs_model_id: str = "eleven_flash_v2_5"
     elevenlabs_output_format: str = "mp3_22050_32"
+    elevenlabs_stability: float = 0.5
+    elevenlabs_similarity_boost: float = 0.8
+    elevenlabs_style: float = 0.0
+    elevenlabs_speed: float = 1.0
+    elevenlabs_use_speaker_boost: bool = True
     
 
 @dataclass
@@ -189,7 +194,12 @@ class Settings:
             return {
                 "voice_id": self.providers.elevenlabs_voice_id,
                 "model_id": self.providers.elevenlabs_model_id,
-                "output_format": self.providers.elevenlabs_output_format
+                "output_format": self.providers.elevenlabs_output_format,
+                "stability": self.providers.elevenlabs_stability,
+                "similarity_boost": self.providers.elevenlabs_similarity_boost,
+                "style": self.providers.elevenlabs_style,
+                "speed": self.providers.elevenlabs_speed,
+                "use_speaker_boost": self.providers.elevenlabs_use_speaker_boost
             }
         else:
             raise ValueError(f"Unknown provider type: {provider_type}")
