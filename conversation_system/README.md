@@ -108,17 +108,23 @@ conversation_system/
 # Install dependencies
 uv sync
 
-# Basic usage
-python -m conversation_system.cli.main start
+# Basic usage (preferred - uses installed script)
+conversation start
+
+# Or use uv run for development
+uv run python -m conversation_system.cli.main start
 
 # With project association
-python -m conversation_system.cli.main start --project /path/to/project
+conversation start --project /path/to/project
 
 # Debug mode
-python -m conversation_system.cli.main start --debug
+conversation start --debug
 
 # Mock mode (no API calls)
-python -m conversation_system.cli.main start --mock
+conversation start --mock
+
+# Run tests with uv
+uv run pytest tests/
 ```
 
 ## Next Steps

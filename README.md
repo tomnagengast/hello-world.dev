@@ -21,8 +21,8 @@ uv sync
 # Basic usage (after uv sync, the 'conversation' command is available)
 conversation start
 
-# Or run directly with Python
-python -m conversation_system.cli.main start
+# Or run directly with uv (automatically handles environment)
+uv run python -m conversation_system.cli.main start
 
 # With project association
 conversation start --project /path/to/project

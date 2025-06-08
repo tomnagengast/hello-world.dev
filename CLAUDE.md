@@ -4,6 +4,10 @@
 
 For details on the project's app functionality, refer to @README.md
 
+## Important Files
+
+@pyproject.toml project dependencies
+
 ## Development Philosophy
 
 Following best practices from the agentic coding runbook:
