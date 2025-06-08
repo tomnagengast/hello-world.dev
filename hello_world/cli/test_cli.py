@@ -11,6 +11,9 @@ from ..config.settings import settings
 from ..utils.logging import setup_logging
 from ..providers import registry
 from ..metrics.collector import MetricsCollector
+from .test_stt import stt as stt_command
+from .ai import ai as ai_command
+from .test_tts import tts as tts_command
 
 
 logger = structlog.get_logger()
@@ -139,50 +142,17 @@ def list_providers(debug, config, no_metrics, output_format):
         handle_cli_error(e, debug)
 
 
-@cli.group()
-@click.pass_context
-def stt(ctx):
-    """Speech-to-text testing utilities."""
-    ctx.obj["provider_type"] = "stt"
+# Register STT command from Team 2
+cli.add_command(stt_command, name="stt")
+
+# Register AI command from Team 3
+cli.add_command(ai_command, name="ai")
+
+# Register TTS command from Team 4
+cli.add_command(tts_command, name="tts")
 
 
-@cli.group()
-@click.pass_context
-def ai(ctx):
-    """AI provider testing utilities."""
-    ctx.obj["provider_type"] = "ai"
-
-
-@cli.group()
-@click.pass_context
-def tts(ctx):
-    """Text-to-speech testing utilities."""
-    ctx.obj["provider_type"] = "tts"
-
-
-# Placeholder commands for each subgroup - to be implemented by other teams
-@stt.command(name="test")
-@add_common_options
-@click.pass_context
-def stt_test(ctx, debug, config, no_metrics, output_format):
-    """Test STT functionality."""
-    click.echo("🎙️ STT testing functionality will be implemented by Team 2")
-
-
-@ai.command(name="test")
-@add_common_options
-@click.pass_context
-def ai_test(ctx, debug, config, no_metrics, output_format):
-    """Test AI functionality."""
-    click.echo("🤖 AI testing functionality will be implemented by Team 3")
-
-
-@tts.command(name="test")
-@add_common_options
-@click.pass_context
-def tts_test(ctx, debug, config, no_metrics, output_format):
-    """Test TTS functionality."""
-    click.echo("🔊 TTS testing functionality will be implemented by Team 4")
+# All teams have completed their implementations
 
 
 if __name__ == "__main__":
