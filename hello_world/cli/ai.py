@@ -4,11 +4,9 @@ import click
 import json
 import sys
 import time
-from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional
 import structlog
 
-from ..providers.registry import registry
 from ..providers.ai.claude import ClaudeProvider
 from ..providers.ai.gemini import GeminiProvider
 from ..utils.logging import setup_logging
@@ -212,7 +210,7 @@ def ai(
             
             # Show metrics if requested
             if metrics:
-                click.echo(f"\n--- Metrics ---", err=True)
+                click.echo("\n--- Metrics ---", err=True)
                 click.echo(f"Provider: {provider}", err=True)
                 if model:
                     click.echo(f"Model: {model}", err=True)

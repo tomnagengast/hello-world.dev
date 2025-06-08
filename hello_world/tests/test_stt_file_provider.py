@@ -2,10 +2,8 @@
 
 import unittest
 import tempfile
-import subprocess
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
-import json
+from unittest.mock import Mock, patch
 
 from hello_world.providers.stt.whisperkit_file import WhisperKitFileProvider
 from hello_world.providers.stt.base import Transcript

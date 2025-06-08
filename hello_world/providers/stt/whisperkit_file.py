@@ -1,8 +1,6 @@
 """WhisperKit STT provider for file processing."""
 
 import subprocess
-import tempfile
-import os
 import time
 from pathlib import Path
 from typing import Iterator, Optional, Union

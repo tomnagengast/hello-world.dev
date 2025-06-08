@@ -1,13 +1,11 @@
 """Tests for AI providers."""
 
 import pytest
-import json
 import os
 import subprocess
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 from hello_world.providers.ai.claude import ClaudeProvider
 from hello_world.providers.ai.gemini import GeminiProvider
-from hello_world.providers.ai.base import AIResponse
 
 
 class TestClaudeProvider:

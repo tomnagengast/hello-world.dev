@@ -3,8 +3,7 @@
 import os
 import time
 import pytest
-from unittest.mock import Mock, patch, MagicMock
-from io import BytesIO
+from unittest.mock import Mock, patch
 
 from hello_world.providers.tts.elevenlabs import ElevenLabsProvider
 from hello_world.providers.tts.base import AudioChunk

@@ -89,7 +89,7 @@ def tts(ctx, input: Optional[str], voice: Optional[str], output: Optional[str],
         if success:
             if metrics:
                 duration = end_time - start_time
-                click.echo(f"\n📊 Metrics:")
+                click.echo("\n📊 Metrics:")
                 click.echo(f"  Total time: {duration:.2f}s")
                 click.echo(f"  Text length: {len(text)} characters")
                 click.echo(f"  Provider: {provider}")

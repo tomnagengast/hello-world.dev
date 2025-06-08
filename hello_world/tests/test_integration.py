@@ -5,12 +5,9 @@ Tests the full pipeline with mock providers.
 
 import unittest
 import time
-import threading
-from pathlib import Path
 
 from hello_world.core.conversation_manager import ConversationManager, ConversationConfig
 from hello_world.metrics.collector import MetricsCollector
-from hello_world.state.session_manager import SessionManager
 
 
 class TestIntegration(unittest.TestCase):

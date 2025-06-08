@@ -6,9 +6,9 @@ import json
 import time
 from pathlib import Path
 from datetime import datetime, date
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
-from hello_world.state.session_manager import SessionManager, Session
+from hello_world.state.session_manager import SessionManager
 from hello_world.metrics.collector import MetricsCollector, LatencyMetric, ThroughputMetric, ErrorMetric, MetricsTimer
 from hello_world.config.settings import Settings
 from hello_world.utils.logging import setup_logging, JsonFormatter
@@ -464,8 +464,8 @@ class TestIntegration:
             settings.save_to_file(config_file)
             
             new_settings = Settings(config_file=config_file)
-            assert new_settings.metrics.enabled == True
-            assert new_settings.logging.file_enabled == True
+            assert new_settings.metrics.enabled is True
+            assert new_settings.logging.file_enabled is True
 
 
 if __name__ == "__main__":

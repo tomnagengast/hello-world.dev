@@ -5,11 +5,9 @@ import io
 from pathlib import Path
 from typing import Optional, Dict, Any
 import structlog
-import pygame
 
 from ..providers import registry
-from ..providers.tts.base import TTSProvider, AudioChunk
-from ..config.settings import settings
+from ..providers.tts.base import TTSProvider
 
 logger = structlog.get_logger()
 

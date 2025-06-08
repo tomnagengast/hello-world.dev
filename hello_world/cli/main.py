@@ -1,7 +1,6 @@
 """CLI entry point for the conversation system."""
 
 import click
-import asyncio
 import json
 import signal
 import sys
@@ -10,6 +9,7 @@ import structlog
 from typing import Optional
 
 from ..core.conversation_manager import ConversationManager, ConversationConfig
+from .ai import ai
 from ..config.settings import settings
 from ..metrics.collector import MetricsCollector
 from ..utils.logging import setup_logging
@@ -330,8 +330,7 @@ def providers():
     click.echo("Example: conversation start --ai-provider gemini")
 
 
-# Import AI command
-from .ai import ai
+# AI command already imported at top of file
 
 
 # Create CLI group

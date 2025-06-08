@@ -3,9 +3,7 @@
 import unittest
 import time
 import numpy as np
-from unittest.mock import Mock, patch, MagicMock
-import threading
-import queue
+from unittest.mock import Mock, patch
 
 from hello_world.providers.stt.whisperkit import WhisperKitProvider, RingBuffer
 from hello_world.utils.interruption_handler import InterruptionHandler
@@ -102,7 +100,7 @@ class TestInterruptionHandler(unittest.TestCase):
         audio_frame = np.random.random(480).astype(np.float32) * 0.1
         
         # Process frame
-        result = handler.process_audio_frame(audio_frame)
+        handler.process_audio_frame(audio_frame)
         
         # Should call VAD
         mock_vad.is_speech.assert_called()

@@ -4,7 +4,7 @@ import unittest
 import tempfile
 import json
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 from click.testing import CliRunner
 
 from hello_world.cli.test_stt import stt

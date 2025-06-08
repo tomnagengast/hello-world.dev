@@ -6,7 +6,7 @@ import sys
 import time
 import tempfile
 from pathlib import Path
-from typing import Optional, TextIO
+from typing import Optional
 import structlog
 
 
@@ -248,7 +248,7 @@ def stt(
             
             # Show metrics if requested
             if metrics:
-                click.echo(f"\n--- Metrics ---", err=True)
+                click.echo("\n--- Metrics ---", err=True)
                 click.echo(f"Processing time: {processing_time * 1000:.1f}ms", err=True)
                 click.echo(f"Characters: {len(result_text)}", err=True)
                 click.echo(f"Words: {len(result_text.split()) if result_text else 0}", err=True)
@@ -282,7 +282,7 @@ def stt(
         
         try:
             stt_provider.stop()
-        except:
+        except Exception:
             pass
 
 
