@@ -123,6 +123,8 @@ class WhisperKitFileProvider(STTProvider):
             # Read output line by line
             transcript_text = ""
             while True:
+                if not self.process.stdout:
+                    break
                 line = self.process.stdout.readline()
                 if not line:
                     # Check if process has terminated

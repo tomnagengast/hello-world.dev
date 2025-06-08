@@ -3,7 +3,7 @@
 import os
 import time
 from typing import Iterator, Optional
-import google.generativeai as genai
+import google.generativeai as genai  # type: ignore[import-untyped]
 import structlog
 
 from .base import AIProvider, AIResponse
@@ -29,7 +29,7 @@ class GeminiProvider(AIProvider):
         self.model_name = model_name
         self.timeout = timeout
         self.max_retries = max_retries
-        self.model: Optional[genai.GenerativeModel] = None
+        self.model: Optional[genai.GenerativeModel] = None  # type: ignore[name-defined]
         self.chat_session = None
         self.is_streaming = False
 
@@ -44,10 +44,10 @@ class GeminiProvider(AIProvider):
 
         try:
             # Configure Gemini API
-            genai.configure(api_key=api_key)
+            genai.configure(api_key=api_key)  # type: ignore[attr-defined]
 
             # Create model with system instruction
-            self.model = genai.GenerativeModel(
+            self.model = genai.GenerativeModel(  # type: ignore[attr-defined]
                 model_name=self.model_name, system_instruction=self.system_prompt
             )
 
@@ -76,7 +76,7 @@ class GeminiProvider(AIProvider):
                 full_response = ""
                 start_time = time.time()
 
-                generation_config = genai.GenerationConfig(
+                generation_config = genai.GenerationConfig(  # type: ignore[attr-defined]
                     temperature=0.7,
                     max_output_tokens=2048,
                 )
@@ -108,14 +108,14 @@ class GeminiProvider(AIProvider):
                             # Extract metadata
                             metadata = {}
                             if hasattr(chunk, "finish_reason"):
-                                metadata["finish_reason"] = chunk.finish_reason
+                                metadata["finish_reason"] = chunk.finish_reason  # type: ignore[attr-defined]
                             if hasattr(chunk, "safety_ratings"):
                                 metadata["safety_ratings"] = [
                                     {
                                         "category": rating.category.name,
                                         "probability": rating.probability.name,
                                     }
-                                    for rating in chunk.safety_ratings
+                                    for rating in chunk.safety_ratings  # type: ignore[attr-defined]
                                 ]
 
                             yield AIResponse(

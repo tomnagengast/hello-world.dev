@@ -56,8 +56,9 @@ class ClaudeProvider(AIProvider):
 
             # Send initial system prompt message
             initial_message = {"type": "system", "content": self.system_prompt}
-            self.process.stdin.write(json.dumps(initial_message) + "\n")
-            self.process.stdin.flush()
+            if self.process.stdin:
+                self.process.stdin.write(json.dumps(initial_message) + "\n")
+                self.process.stdin.flush()
 
             logger.info("Claude subprocess started")
 
@@ -79,8 +80,9 @@ class ClaudeProvider(AIProvider):
         try:
             # Send user input as JSON message
             user_message = {"type": "user", "content": user_input}
-            self.process.stdin.write(json.dumps(user_message) + "\n")
-            self.process.stdin.flush()
+            if self.process.stdin:
+                self.process.stdin.write(json.dumps(user_message) + "\n")
+                self.process.stdin.flush()
 
             is_first = True
             full_response = ""
@@ -94,6 +96,8 @@ class ClaudeProvider(AIProvider):
                     self.is_streaming = False
                     raise TimeoutError(f"Claude response timeout after {self.timeout}s")
 
+                if not self.process.stdout:
+                    break
                 line = self.process.stdout.readline()
                 if not line:
                     break

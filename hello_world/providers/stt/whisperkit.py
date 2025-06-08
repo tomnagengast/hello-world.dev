@@ -191,8 +191,12 @@ class WhisperKitProvider(STTProvider):
             default_input = sd.query_devices(kind="input")
             logger.info(
                 "Audio device info",
-                default_input=default_input["name"],
-                sample_rate=default_input["default_samplerate"],
+                default_input=default_input["name"]
+                if isinstance(default_input, dict)
+                else str(default_input),
+                sample_rate=default_input["default_samplerate"]
+                if isinstance(default_input, dict)
+                else None,
             )
         except Exception as e:
             logger.error("Failed to query audio devices", error=str(e))
@@ -330,6 +334,8 @@ class WhisperKitProvider(STTProvider):
 
         while self.is_running:
             try:
+                if not self.process.stdout:
+                    break
                 line = self.process.stdout.readline()
                 if not line:
                     if self.process.poll() is not None:

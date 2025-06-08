@@ -99,7 +99,7 @@ class ElevenLabsProvider(TTSProvider):
 
             # Convert to bytes if needed
             if hasattr(audio_bytes, "content"):
-                audio_data = audio_bytes.content
+                audio_data = audio_bytes.content  # type: ignore[attr-defined]
             elif isinstance(audio_bytes, (bytes, bytearray)):
                 audio_data = bytes(audio_bytes)
             else:

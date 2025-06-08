@@ -90,7 +90,7 @@ class SessionManager:
     def _generate_uuid7(self) -> str:
         """Generate UUID for time-sortable IDs. Falls back to uuid4 if uuid7 not available."""
         try:
-            return str(uuid.uuid7())
+            return str(uuid.uuid7())  # type: ignore[attr-defined]
         except AttributeError:
             # uuid7 not available in older Python versions, use uuid4
             return str(uuid4())

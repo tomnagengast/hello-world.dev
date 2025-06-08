@@ -108,7 +108,7 @@ class TestMetricsCollector:
     def test_latency_metric_recording(self):
         """Test recording latency metrics."""
         with tempfile.TemporaryDirectory() as tmp_dir:
-            collector = MetricsCollector(tmp_dir)
+            collector = MetricsCollector(Path(tmp_dir))
 
             # Start a session
             collector.start_session("test_session")
@@ -125,7 +125,7 @@ class TestMetricsCollector:
     def test_ai_latency_recording(self):
         """Test recording AI response latency."""
         with tempfile.TemporaryDirectory() as tmp_dir:
-            collector = MetricsCollector(tmp_dir)
+            collector = MetricsCollector(Path(tmp_dir))
 
             # Start a session
             collector.start_session("test_session")
@@ -147,7 +147,7 @@ class TestMetricsCollector:
     def test_interaction_recording(self):
         """Test recording interactions."""
         with tempfile.TemporaryDirectory() as tmp_dir:
-            collector = MetricsCollector(tmp_dir)
+            collector = MetricsCollector(Path(tmp_dir))
 
             # Start a session
             collector.start_session("test_session")
@@ -164,7 +164,7 @@ class TestMetricsCollector:
     def test_error_recording(self):
         """Test recording errors."""
         with tempfile.TemporaryDirectory() as tmp_dir:
-            collector = MetricsCollector(tmp_dir)
+            collector = MetricsCollector(Path(tmp_dir))
 
             # Start a session
             collector.start_session("test_session")
@@ -184,7 +184,7 @@ class TestMetricsCollector:
     def test_metrics_summary(self):
         """Test metrics summary generation."""
         with tempfile.TemporaryDirectory() as tmp_dir:
-            collector = MetricsCollector(tmp_dir)
+            collector = MetricsCollector(Path(tmp_dir))
 
             # Start a session
             collector.start_session("test_session")
@@ -206,7 +206,7 @@ class TestMetricsCollector:
     def test_save_and_load_metrics(self):
         """Test saving and loading session metrics."""
         with tempfile.TemporaryDirectory() as tmp_dir:
-            collector = MetricsCollector(tmp_dir)
+            collector = MetricsCollector(Path(tmp_dir))
 
             # Start a session and record metrics
             session_id = "test_session_save"
@@ -388,7 +388,7 @@ class TestIntegration:
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Setup
             session_manager = SessionManager(str(Path(tmp_dir) / "sessions"))
-            metrics_collector = MetricsCollector(str(Path(tmp_dir) / "metrics"))
+            metrics_collector = MetricsCollector(Path(tmp_dir) / "metrics")
 
             # Create session
             session = session_manager.create_session("/test/project")

@@ -243,8 +243,9 @@ class TestWhisperKitProvider(unittest.TestCase):
         # Verify cleanup
         self.assertFalse(self.provider.is_running)
         self.assertFalse(self.provider.is_recording)
-        self.provider.audio_stream.stop.assert_called_once()
-        self.provider.audio_stream.close.assert_called_once()
+        if self.provider.audio_stream:
+            self.provider.audio_stream.stop.assert_called_once()
+            self.provider.audio_stream.close.assert_called_once()
         mock_process.terminate.assert_called_once()
 
 

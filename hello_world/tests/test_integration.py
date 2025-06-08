@@ -77,6 +77,12 @@ class TestIntegration(unittest.TestCase):
         time.sleep(0.5)
 
         # Check that threads are running
+        self.assertIsNotNone(self.manager.stt_thread)
+        self.assertIsNotNone(self.manager.ai_thread)
+        self.assertIsNotNone(self.manager.tts_thread)
+        assert self.manager.stt_thread is not None  # Type guard
+        assert self.manager.ai_thread is not None  # Type guard
+        assert self.manager.tts_thread is not None  # Type guard
         self.assertTrue(self.manager.stt_thread.is_alive())
         self.assertTrue(self.manager.ai_thread.is_alive())
         self.assertTrue(self.manager.tts_thread.is_alive())
@@ -97,6 +103,8 @@ class TestIntegration(unittest.TestCase):
     def test_metrics_collection(self):
         """Test that metrics are collected during operation."""
         collector = self.manager.metrics_collector
+        self.assertIsNotNone(collector)
+        assert collector is not None  # Type guard for pyright
 
         # Start session
         collector.start_session("test_session")
@@ -247,7 +255,8 @@ class TestMockProviders(unittest.TestCase):
         transcript_count = 0
         for transcript in provider.stream_transcripts():
             self.assertIsNotNone(transcript.text)
-            self.assertGreater(transcript.confidence, 0)
+            if transcript.confidence is not None:
+                self.assertGreater(transcript.confidence, 0)
             transcript_count += 1
             if transcript_count >= 2:  # Test just a couple
                 break

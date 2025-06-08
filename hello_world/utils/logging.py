@@ -167,7 +167,7 @@ class JsonFormatter(logging.Formatter):
             # Add extra fields from structlog event_dict
             if self.include_extra and hasattr(record, "_record"):
                 # Structlog adds the event_dict to _record
-                event_dict = getattr(record._record, "event_dict", {})
+                event_dict = getattr(record._record, "event_dict", {})  # type: ignore[attr-defined]
                 if event_dict:
                     # Filter out standard fields to avoid duplication
                     standard_fields = {

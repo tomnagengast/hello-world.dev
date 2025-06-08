@@ -1,6 +1,6 @@
 """Provider registry for dynamic provider loading."""
 
-from typing import Dict, Type, Callable, Any
+from typing import Dict, Type, Callable, Any, Optional
 import structlog
 
 from .stt.base import STTProvider
@@ -24,7 +24,7 @@ class ProviderRegistry:
         self,
         name: str,
         provider_class: Type[STTProvider],
-        config_getter: Callable[[], Dict[str, Any]] = None,
+        config_getter: Optional[Callable[[], Dict[str, Any]]] = None,
     ) -> None:
         """Register an STT provider."""
         self._stt_providers[name] = provider_class
@@ -38,7 +38,7 @@ class ProviderRegistry:
         self,
         name: str,
         provider_class: Type[AIProvider],
-        config_getter: Callable[[], Dict[str, Any]] = None,
+        config_getter: Optional[Callable[[], Dict[str, Any]]] = None,
     ) -> None:
         """Register an AI provider."""
         self._ai_providers[name] = provider_class
@@ -52,7 +52,7 @@ class ProviderRegistry:
         self,
         name: str,
         provider_class: Type[TTSProvider],
-        config_getter: Callable[[], Dict[str, Any]] = None,
+        config_getter: Optional[Callable[[], Dict[str, Any]]] = None,
     ) -> None:
         """Register a TTS provider."""
         self._tts_providers[name] = provider_class
