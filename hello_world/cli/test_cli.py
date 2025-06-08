@@ -21,6 +21,7 @@ logger = structlog.get_logger()
 
 class TestCLIError(Exception):
     """Base exception for test CLI errors."""
+
     pass
 
 
@@ -29,7 +30,7 @@ def setup_test_logging(debug: bool = False) -> None:
     setup_logging(
         debug=debug,
         log_file=False,  # Disable file logging for testing utilities
-        log_format="dev" if debug else "json"
+        log_format="dev" if debug else "json",
     )
 
 
@@ -41,7 +42,7 @@ def load_test_config(config_file: Optional[str] = None) -> None:
             raise TestCLIError(f"Configuration file not found: {config_file}")
         settings.config_file = config_path
         settings.load_from_file()
-    
+
     # Validate settings
     issues = settings.validate()
     if issues:
@@ -52,26 +53,30 @@ def get_provider_list() -> Dict[str, list]:
     """Get list of all available providers by type."""
     return {
         "stt": registry.list_stt_providers(),
-        "ai": registry.list_ai_providers(), 
-        "tts": registry.list_tts_providers()
+        "ai": registry.list_ai_providers(),
+        "tts": registry.list_tts_providers(),
     }
 
 
-def format_provider_output(providers: Dict[str, list], output_format: str = "text") -> str:
+def format_provider_output(
+    providers: Dict[str, list], output_format: str = "text"
+) -> str:
     """Format provider list for output."""
     if output_format == "json":
         return json.dumps(providers, indent=2)
-    
+
     output = []
     output.append("🔌 Available Providers")
     output.append("-" * 50)
-    
+
     for provider_type, provider_list in providers.items():
         emoji = {"stt": "🎙️", "ai": "🤖", "tts": "🔊"}[provider_type]
-        output.append(f"\n{emoji} {provider_type.upper()} Providers ({len(provider_list)})")
+        output.append(
+            f"\n{emoji} {provider_type.upper()} Providers ({len(provider_list)})"
+        )
         for provider in provider_list:
             output.append(f"  - {provider}")
-    
+
     return "\n".join(output)
 
 
@@ -86,7 +91,9 @@ def handle_cli_error(error: Exception, debug: bool = False) -> None:
         sys.exit(1)
 
 
-def collect_performance_metrics(enable_metrics: bool = True) -> Optional[MetricsCollector]:
+def collect_performance_metrics(
+    enable_metrics: bool = True,
+) -> Optional[MetricsCollector]:
     """Initialize metrics collection if enabled."""
     if enable_metrics:
         try:
@@ -99,9 +106,16 @@ def collect_performance_metrics(enable_metrics: bool = True) -> Optional[Metrics
 # Common CLI options that can be reused across subcommands
 common_options = [
     click.option("--debug", is_flag=True, help="Enable debug logging"),
-    click.option("--config", type=click.Path(exists=True), help="Path to configuration file"),
+    click.option(
+        "--config", type=click.Path(exists=True), help="Path to configuration file"
+    ),
     click.option("--no-metrics", is_flag=True, help="Disable metrics collection"),
-    click.option("--output-format", type=click.Choice(["text", "json"]), default="text", help="Output format")
+    click.option(
+        "--output-format",
+        type=click.Choice(["text", "json"]),
+        default="text",
+        help="Output format",
+    ),
 ]
 
 
@@ -118,7 +132,7 @@ def add_common_options(func):
 def cli(ctx):
     """
     Developer testing utilities for the conversation system.
-    
+
     This CLI provides testing tools for STT, AI, and TTS providers
     to help validate functionality during development.
     """
@@ -133,11 +147,11 @@ def list_providers(debug, config, no_metrics, output_format):
     try:
         setup_test_logging(debug)
         load_test_config(config)
-        
+
         providers = get_provider_list()
         output = format_provider_output(providers, output_format)
         click.echo(output)
-        
+
     except Exception as e:
         handle_cli_error(e, debug)
 

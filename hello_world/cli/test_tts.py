@@ -10,46 +10,47 @@ from .tts_utility import TTSTestUtility
 
 @click.command()
 @click.option(
-    "--input", "-i",
-    help="Text to convert to speech (if not provided, reads from stdin)"
+    "--input",
+    "-i",
+    help="Text to convert to speech (if not provided, reads from stdin)",
 )
+@click.option("--voice", "-v", help="Voice to use for TTS")
 @click.option(
-    "--voice", "-v",
-    help="Voice to use for TTS"
-)
-@click.option(
-    "--output", "-o",
+    "--output",
+    "-o",
     type=click.Path(),
-    help="Output file path (default: play through speakers)"
+    help="Output file path (default: play through speakers)",
 )
 @click.option(
-    "--provider", "-p",
+    "--provider",
+    "-p",
     default="elevenlabs",
-    help="TTS provider to use (default: elevenlabs)"
+    help="TTS provider to use (default: elevenlabs)",
 )
 @click.option(
-    "--speed",
-    type=float,
-    default=1.0,
-    help="Speech speed multiplier (default: 1.0)"
+    "--speed", type=float, default=1.0, help="Speech speed multiplier (default: 1.0)"
 )
-@click.option(
-    "--metrics", "-m",
-    is_flag=True,
-    help="Show performance metrics"
-)
+@click.option("--metrics", "-m", is_flag=True, help="Show performance metrics")
 @click.option(
     "--format",
     type=click.Choice(["mp3", "wav"]),
     default="mp3",
-    help="Output audio format (default: mp3)"
+    help="Output audio format (default: mp3)",
 )
 @click.pass_context
-def tts(ctx, input: Optional[str], voice: Optional[str], output: Optional[str], 
-        provider: str, speed: float, metrics: bool, format: str):
+def tts(
+    ctx,
+    input: Optional[str],
+    voice: Optional[str],
+    output: Optional[str],
+    provider: str,
+    speed: float,
+    metrics: bool,
+    format: str,
+):
     """Test text-to-speech functionality."""
     debug = ctx.obj.get("debug", False) if ctx.obj else False
-    
+
     # Get text input
     if input:
         text = input
@@ -63,29 +64,24 @@ def tts(ctx, input: Optional[str], voice: Optional[str], output: Optional[str],
         except KeyboardInterrupt:
             click.echo("\nCancelled", err=True)
             sys.exit(1)
-    
+
     if not text:
         click.echo("Error: Empty input text", err=True)
         sys.exit(1)
-    
+
     try:
         # Initialize TTS utility
         utility = TTSTestUtility(
-            provider=provider,
-            voice=voice,
-            speed=speed,
-            debug=debug
+            provider=provider, voice=voice, speed=speed, debug=debug
         )
-        
+
         # Run TTS test
         start_time = time.time()
         success = utility.run_tts_test(
-            text=text,
-            output_file=output,
-            output_format=format
+            text=text, output_file=output, output_format=format
         )
         end_time = time.time()
-        
+
         if success:
             if metrics:
                 duration = end_time - start_time
@@ -96,7 +92,7 @@ def tts(ctx, input: Optional[str], voice: Optional[str], output: Optional[str],
                 if voice:
                     click.echo(f"  Voice: {voice}")
                 click.echo(f"  Speed: {speed}x")
-                
+
                 # Get additional metrics from utility
                 util_metrics = utility.get_metrics()
                 for key, value in util_metrics.items():
@@ -106,10 +102,11 @@ def tts(ctx, input: Optional[str], voice: Optional[str], output: Optional[str],
                         click.echo(f"  {key}: {value}")
         else:
             sys.exit(1)
-            
+
     except Exception as e:
         if debug:
             import structlog
+
             logger = structlog.get_logger()
             logger.error("TTS test failed", error=str(e), exc_info=True)
         click.echo(f"Error: {str(e)}", err=True)

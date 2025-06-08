@@ -1,12 +1,13 @@
 """Text-to-Speech providers."""
 
+
 def register_providers():
     """Register all TTS providers."""
     # Import at function level to avoid circular imports
     from ..registry import registry
     from ...config.settings import settings
     from .elevenlabs import ElevenLabsProvider
-    
+
     def get_elevenlabs_config():
         config = settings.get_provider_config("elevenlabs")
         return {
@@ -17,11 +18,9 @@ def register_providers():
             "similarity_boost": config.get("similarity_boost", 0.8),
             "style": config.get("style", 0.0),
             "speed": config.get("speed", 1.0),
-            "use_speaker_boost": config.get("use_speaker_boost", True)
+            "use_speaker_boost": config.get("use_speaker_boost", True),
         }
-    
+
     registry.register_tts_provider(
-        "elevenlabs", 
-        ElevenLabsProvider,
-        get_elevenlabs_config
+        "elevenlabs", ElevenLabsProvider, get_elevenlabs_config
     )

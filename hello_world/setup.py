@@ -7,7 +7,7 @@ setup(
     version="1.0.0",
     description="Natural voice interactions with AI models",
     author="Your Name",
-    packages=find_packages(include=['hello_world', 'hello_world.*']),
+    packages=find_packages(include=["hello_world", "hello_world.*"]),
     python_requires=">=3.11",
     install_requires=[
         "python-dotenv>=1.0.0",
