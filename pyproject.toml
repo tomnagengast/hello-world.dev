@@ -20,3 +20,7 @@ dependencies = [
     "pytest>=7.0.0",
     "setuptools>=68.0.0",  # Required for pkg_resources
 ]
+
+[project.scripts]
+conversation = "hello_world.cli.main:cli"
+conversation-test = "hello_world.cli.test_main:cli"
