@@ -186,7 +186,7 @@ wheels = [
 [[package]]
 name = "conversation-system"
 version = "1.0.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "click" },
     { name = "elevenlabs" },
