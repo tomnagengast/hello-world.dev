@@ -89,7 +89,7 @@ class InterruptionHandler:
             
             # Calculate voice activity ratio over recent frames
             if len(self.voice_frames) > 10:
-                voice_ratio = sum(self.voice_frames[-10:]) / 10
+                voice_ratio = sum(list(self.voice_frames)[-10:]) / 10
                 was_voice_active = self.is_voice_active
                 self.is_voice_active = voice_ratio >= self.voice_threshold
                 
@@ -145,7 +145,7 @@ class InterruptionHandler:
             "is_silence": self.is_silence(),
             "noise_floor": self.noise_floor,
             "dynamic_threshold": self.dynamic_threshold,
-            "recent_voice_ratio": sum(self.voice_frames[-10:]) / min(10, len(self.voice_frames)) if self.voice_frames else 0
+            "recent_voice_ratio": sum(list(self.voice_frames)[-10:]) / min(10, len(self.voice_frames)) if self.voice_frames else 0
         }
         
     def trigger_interruption(self) -> None:
