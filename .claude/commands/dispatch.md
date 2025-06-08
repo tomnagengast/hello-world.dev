@@ -1,9 +1,25 @@
 # Parallel Development Workflow
 
+## Usage
+```bash
+claude
+# Initialize parallel development for a new feature
+/project:dispatch @specs/2025_06_07_14_35_00_conversation_system.md
+```
+
+**Purpose**: Intelligently sets up and manages parallel development workflows using git worktrees, automatically creating isolated development environments for concurrent feature development.
+
+**When to use**:
+- Starting development on a new feature that can be parallelized
+- Executing complex plans that benefit from multiple development streams
+- Managing concurrent work on different aspects of the same feature
+
 ## Variables
-FEATURE_OR_PLAN: @$ARGUMENTS
+FEATURE_OR_PLAN: $ARGUMENTS
 
 ## Execute these commands
+- Log args passed to command with `echo FEATURE_OR_PLAN`
+
 > Intelligently set up and execute parallel development workflow
 
 ### 1. Analyze Input
