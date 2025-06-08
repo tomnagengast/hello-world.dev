@@ -13,9 +13,11 @@ import structlog
 from ..providers.stt.base import STTProvider
 from ..providers.ai.base import AIProvider
 from ..providers.tts.base import TTSProvider
+from ..providers.registry import registry
 from ..state.session_manager import SessionManager
 from ..metrics.collector import MetricsCollector
 from ..utils.interruption_handler import InterruptionHandler
+from ..config.settings import settings
 
 
 logger = structlog.get_logger()
@@ -75,51 +77,34 @@ class ConversationManager:
         if self.config.mock_mode:
             from mocks.providers import MockSTTProvider
             return MockSTTProvider()
-        elif self.config.stt_provider == "whisperkit":
-            from ..providers.stt.whisperkit import WhisperKitProvider
-            return WhisperKitProvider(
-                model="large-v3_turbo",
-                vad_enabled=True,
-                compute_units="cpuAndNeuralEngine"
-            )
         else:
-            raise ValueError(f"Unknown STT provider: {self.config.stt_provider}")
+            return registry.get_stt_provider(self.config.stt_provider)
         
     def _initialize_ai_provider(self) -> AIProvider:
         """Initialize the AI provider based on configuration."""
-        system_prompt = "You are a helpful AI assistant engaged in a natural voice conversation. Respond concisely and naturally."
-        
         if self.config.mock_mode:
             from mocks.providers import MockAIProvider
-            return MockAIProvider(system_prompt=system_prompt, streaming=True)
-        elif self.config.ai_provider == "claude":
-            from ..providers.ai.claude import ClaudeProvider
-            return ClaudeProvider(
-                system_prompt=system_prompt,
-                streaming=True
-            )
-        elif self.config.ai_provider == "gemini":
-            from ..providers.ai.gemini import GeminiProvider
-            return GeminiProvider(
-                system_prompt=system_prompt,
+            return MockAIProvider(
+                system_prompt=settings.system_prompts.default, 
                 streaming=True
             )
         else:
-            raise ValueError(f"Unknown AI provider: {self.config.ai_provider}")
+            # System prompt comes from settings
+            return registry.get_ai_provider(
+                self.config.ai_provider,
+                streaming=True
+            )
         
     def _initialize_tts_provider(self) -> TTSProvider:
         """Initialize the TTS provider based on configuration."""
         if self.config.mock_mode:
             from mocks.providers import MockTTSProvider
             return MockTTSProvider()
-        elif self.config.tts_provider == "elevenlabs":
-            from ..providers.tts.elevenlabs import ElevenLabsProvider
-            return ElevenLabsProvider(
-                voice_id="default",
+        else:
+            return registry.get_tts_provider(
+                self.config.tts_provider,
                 streaming=True
             )
-        else:
-            raise ValueError(f"Unknown TTS provider: {self.config.tts_provider}")
     
     def start(self, project_path: Optional[str] = None):
         """Start the conversation system."""

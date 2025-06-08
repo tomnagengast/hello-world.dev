@@ -201,7 +201,8 @@ class Settings:
     def load_from_env(self) -> None:
         """Load settings from environment variables."""
         with self._lock:
-            # AI Provider selection
+            # Provider selection
+            self.stt_provider = os.getenv("STT_PROVIDER", "whisperkit")
             self.ai_provider = os.getenv("AI_PROVIDER", "claude")
             self.tts_provider = os.getenv("TTS_PROVIDER", "elevenlabs")
             
@@ -405,6 +406,8 @@ class Settings:
             issues.append(f"Invalid initial backoff: {self.retries.initial_backoff}")
             
         # Validate provider settings
+        if self.stt_provider not in ["whisperkit"]:
+            issues.append(f"Unknown STT provider: {self.stt_provider}")
         if self.ai_provider not in ["claude", "gemini"]:
             issues.append(f"Unknown AI provider: {self.ai_provider}")
         if self.tts_provider not in ["elevenlabs"]:
@@ -415,6 +418,7 @@ class Settings:
     def to_dict(self) -> Dict[str, Any]:
         """Convert settings to dictionary for serialization."""
         return {
+            "stt_provider": self.stt_provider,
             "ai_provider": self.ai_provider,
             "tts_provider": self.tts_provider,
             "system_prompts": {

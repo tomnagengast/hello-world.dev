@@ -167,8 +167,7 @@ class MockTTSProvider(TTSProvider):
                 break
                 
             yield AudioChunk(
-                audio_data=b"mock_audio_data",  # Fake audio data
-                sample_rate=22050,
+                data=b"mock_audio_data",  # Fake audio data
                 is_first=(i == 0),
                 is_final=(i == len(words) - 1),
                 duration_ms=len(word) * 100  # Rough estimate: 100ms per character

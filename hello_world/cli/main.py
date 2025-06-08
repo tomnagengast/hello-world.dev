@@ -12,6 +12,7 @@ from ..core.conversation_manager import ConversationManager, ConversationConfig
 from ..config.settings import settings
 from ..metrics.collector import MetricsCollector
 from ..utils.logging import setup_logging
+from ..providers import registry
 
 
 logger = structlog.get_logger()
@@ -29,12 +30,36 @@ def signal_handler(signum, frame):
     sys.exit(0)
 
 
+def validate_provider(ctx, param, value):
+    """Validate provider selection."""
+    if param.name == 'stt_provider':
+        valid_providers = registry.list_stt_providers()
+        provider_type = "STT"
+    elif param.name == 'ai_provider':
+        valid_providers = registry.list_ai_providers()
+        provider_type = "AI"
+    elif param.name == 'tts_provider':
+        valid_providers = registry.list_tts_providers()
+        provider_type = "TTS"
+    else:
+        return value
+        
+    if value not in valid_providers:
+        raise click.BadParameter(
+            f"Invalid {provider_type} provider '{value}'. "
+            f"Available options: {', '.join(valid_providers)}"
+        )
+    return value
+
+
 @click.command()
 @click.option('--project', '-p', type=click.Path(), 
               help='Project path to associate with conversation')
-@click.option('--ai-provider', type=click.Choice(['claude', 'gemini']), 
+@click.option('--stt-provider', callback=validate_provider,
+              default='whisperkit', help='STT provider to use')
+@click.option('--ai-provider', callback=validate_provider,
               default='claude', help='AI provider to use')
-@click.option('--tts-provider', type=click.Choice(['elevenlabs']), 
+@click.option('--tts-provider', callback=validate_provider,
               default='elevenlabs', help='TTS provider to use')
 @click.option('--debug', is_flag=True, help='Enable debug logging')
 @click.option('--mock', is_flag=True, help='Run in mock mode (no API calls)')
@@ -46,6 +71,7 @@ def signal_handler(signum, frame):
 @click.option('--no-metrics', is_flag=True, 
               help='Disable metrics collection')
 def main(project: Optional[str], 
+         stt_provider: str,
          ai_provider: str,
          tts_provider: str,
          debug: bool,
@@ -77,11 +103,13 @@ def main(project: Optional[str],
         settings.load_from_file()
         
     # Override with command line options
+    settings.stt_provider = stt_provider
     settings.ai_provider = ai_provider
     settings.tts_provider = tts_provider
     
     # Create conversation config
     conversation_config = ConversationConfig(
+        stt_provider=stt_provider,
         ai_provider=ai_provider,
         tts_provider=tts_provider,
         enable_interruptions=not no_interruptions,
@@ -95,6 +123,7 @@ def main(project: Optional[str],
     
     # Display startup information
     click.echo(click.style("🎙️  Conversation System Starting...", fg='green', bold=True))
+    click.echo(f"STT Provider: {stt_provider}")
     click.echo(f"AI Provider: {ai_provider}")
     click.echo(f"TTS Provider: {tts_provider}")
     click.echo(f"Project: {project or 'None'}")
@@ -234,11 +263,40 @@ def conversations(project_path: str):
         click.echo(click.style(f"❌ Error retrieving conversations: {str(e)}", fg='red'))
 
 
+@click.command()
+def providers():
+    """List available providers."""
+    click.echo("🔌 Available Providers")
+    click.echo("-" * 50)
+    
+    # STT Providers
+    stt_providers = registry.list_stt_providers()
+    click.echo(f"\n🎙️  STT Providers ({len(stt_providers)})")
+    for provider in stt_providers:
+        click.echo(f"  - {provider}")
+        
+    # AI Providers
+    ai_providers = registry.list_ai_providers()
+    click.echo(f"\n🤖 AI Providers ({len(ai_providers)})")
+    for provider in ai_providers:
+        click.echo(f"  - {provider}")
+        
+    # TTS Providers
+    tts_providers = registry.list_tts_providers()
+    click.echo(f"\n🔊 TTS Providers ({len(tts_providers)})")
+    for provider in tts_providers:
+        click.echo(f"  - {provider}")
+        
+    click.echo("\nUse --<type>-provider flag to select a specific provider.")
+    click.echo("Example: conversation start --ai-provider gemini")
+
+
 # Create CLI group
 cli = click.Group()
 cli.add_command(main, name='start')
 cli.add_command(metrics)
 cli.add_command(conversations)
+cli.add_command(providers)
 
 
 if __name__ == '__main__':
