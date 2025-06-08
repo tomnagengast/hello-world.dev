@@ -18,14 +18,23 @@ A pluggable conversation system that enables natural voice interactions with AI 
 # Install dependencies
 uv sync
 
-# Basic usage
+# Basic usage (after uv sync, the 'conversation' command is available)
+conversation start
+
+# Or run directly with Python
 python -m conversation_system.cli.main start
 
 # With project association
-python -m conversation_system.cli.main start --project /path/to/project
+conversation start --project /path/to/project
 
 # Debug mode
-python -m conversation_system.cli.main start --debug
+conversation start --debug
+
+# View metrics
+conversation metrics --days 7
+
+# List conversations for a project
+conversation conversations /path/to/project
 ```
 
 ## Architecture
