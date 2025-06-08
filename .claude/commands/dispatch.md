@@ -4,6 +4,7 @@
 ## Usage
 ```bash
 claude
+
 # Initialize parallel development for a new feature
 /project:dispatch @specs/<spec>.md
 ```
@@ -23,6 +24,8 @@ FEATURE_OR_PLAN: $ARGUMENTS
 ## Resources
 
 - Git worktrees should be created in the `./.worktrees` directory
+- Dev branches should follow the `<feature_slug>-<team_id (ex: 1)>` pattern
+- Tmux session names should follow the `<project_dir>-<branch_name>` pattern
 - You and your instance can use the internet to look up references needed to complete the tasks
 - When dispatching workers, use the Claude Code SDK ([SDK Docs](https://docs.anthropic.com/en/docs/claude-code/sdk), [CLI Docs](https://docs.anthropic.com/en/docs/claude-code/cli-usage))
   - Take advantage of the `--output-format json` flag to store session IDs for workers so that they maintain context as they're completing their tasks
@@ -30,5 +33,5 @@ FEATURE_OR_PLAN: $ARGUMENTS
 - Use TMUX for session management
   - When creating sessions, use the current sessions name followed by the branch. So if you're running in `app:2` the sessions will be in `app/<workstream-branch>`. This will help keep things organized when list all tmux session alphabetically
   - Auto approve the initial Claude Code prompt with `tmux new -d -s <workstream-branch> 'claude --model sonnet'; sleep 1; tmux send -t <workstream-branch> Enter;`
-  - If sessions need direction or response, communicate with them with `tmux send -t <workstream-branch> <message>; tmux send -t <workstream-branch> Enter`
-  - Check in on sessions periodically to check progress, if they're taking the wrong approach, interrupt them with `tmux send -t <workstream-branch> Esc; tmux send -t <workstream-branch> <message>; tmux send -t <workstream-branch> Enter`
+  - If sessions need direction or response, communicate with them with `tmux send -t <workstream-branch> <message> Esc Enter`
+  - Check in on sessions periodically to check progress, if they're taking the wrong approach, interrupt them with `tmux send -t <workstream-branch> Esc; tmux send -t <workstream-branch> <message> Esc Enter`
