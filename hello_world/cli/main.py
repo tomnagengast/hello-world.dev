@@ -110,14 +110,20 @@ def main(project: Optional[str],
         # Start the conversation system
         conversation_manager.start(project_path=project)
         
-        # Keep the main thread alive
-        while True:
-            # PSEUDOCODE: Main loop
-            # - Display status updates
-            # - Handle user commands (if any)
-            # - Sleep to prevent CPU spinning
-            import time
+        # Keep the main thread alive and display status
+        import time
+        last_status_time = 0
+        status_interval = 10  # Show status every 10 seconds
+        
+        while conversation_manager.is_running:
             time.sleep(1)
+            
+            # Display periodic status in debug mode
+            if debug and time.time() - last_status_time > status_interval:
+                status = conversation_manager.get_status()
+                click.echo(f"Status: Running | Transcript Queue: {status['transcript_queue_size']} | "
+                          f"Response Queue: {status['response_queue_size']} | TTS: {'Playing' if status['tts_playing'] else 'Idle'}")
+                last_status_time = time.time()
             
     except KeyboardInterrupt:
         click.echo("\n\nShutting down...")
@@ -150,21 +156,50 @@ def main(project: Optional[str],
               default='text', help='Output format')
 def metrics(days: int, format: str):
     """View performance metrics."""
+    import json
+    from ..metrics.collector import MetricsCollector
+    
     collector = MetricsCollector()
+    report = collector.generate_report(days=days)
     
     if format == 'json':
-        # PSEUDOCODE: Output JSON report
-        # report = collector.generate_report(days=days)
-        # click.echo(json.dumps(report, indent=2))
-        pass
+        click.echo(json.dumps(report, indent=2))
     else:
-        # PSEUDOCODE: Output text report
-        # report = collector.generate_report(days=days)
-        # click.echo("📊 Performance Metrics Report")
-        # click.echo(f"Last {days} days")
-        # click.echo("-" * 40)
-        # # Format and display report...
-        pass
+        click.echo("📊 Performance Metrics Report")
+        click.echo(f"Last {days} days")
+        click.echo("-" * 50)
+        
+        if 'error' in report:
+            click.echo(click.style(f"❌ {report['error']}", fg='red'))
+            return
+        
+        if report['total_sessions'] == 0:
+            click.echo("No data available for the specified period.")
+            return
+            
+        # Display summary statistics
+        click.echo(f"Total Sessions: {report['total_sessions']}")
+        click.echo(f"Total Interactions: {report['total_interactions']}")
+        click.echo(f"Error Rate: {report['error_rate']:.2%}")
+        click.echo(f"Interruption Rate: {report['interruption_rate']:.2%}")
+        click.echo()
+        
+        # Display latency metrics
+        def display_latency(name, metrics):
+            if metrics['samples'] > 0:
+                click.echo(f"{name} Latency:")
+                click.echo(f"  Average: {metrics['avg']:.1f}ms")
+                click.echo(f"  P95: {metrics['p95']:.1f}ms")
+                click.echo(f"  P99: {metrics['p99']:.1f}ms")
+                click.echo(f"  Samples: {metrics['samples']}")
+            else:
+                click.echo(f"{name} Latency: No data")
+            click.echo()
+        
+        display_latency("STT", report['stt_latency_ms'])
+        display_latency("AI", report['ai_latency_ms'])
+        display_latency("TTS", report['tts_latency_ms'])
+        display_latency("End-to-End", report['e2e_latency_ms'])
 
 
 @click.command()
@@ -173,23 +208,30 @@ def conversations(project_path: str):
     """List conversations for a project."""
     from ..state.session_manager import SessionManager
     
-    manager = SessionManager()
-    conversations = manager.list_conversations(project_path)
-    
-    if not conversations:
-        click.echo("No conversations found for this project.")
-        return
+    try:
+        manager = SessionManager()
+        conversations_list = manager.list_conversations(project_path)
         
-    click.echo(f"📝 Conversations for {project_path}:")
-    click.echo("-" * 60)
-    
-    # PSEUDOCODE: Display conversations
-    # for conv in conversations:
-    #     click.echo(f"ID: {conv['id']}")
-    #     click.echo(f"Created: {conv['created_at']}")
-    #     click.echo(f"Last Active: {conv['last_accessed']}")
-    #     click.echo(f"Sessions: {conv['session_count']}")
-    #     click.echo("-" * 60)
+        if not conversations_list:
+            click.echo("No conversations found for this project.")
+            return
+            
+        click.echo(f"📝 Conversations for {project_path}:")
+        click.echo("-" * 60)
+        
+        for conv in conversations_list:
+            click.echo(f"ID: {conv.get('id', 'Unknown')}")
+            click.echo(f"Created: {conv.get('created_at', 'Unknown')}")
+            click.echo(f"Last Active: {conv.get('last_accessed', 'Unknown')}")
+            click.echo(f"Sessions: {conv.get('session_count', 0)}")
+            
+            if 'summary' in conv:
+                click.echo(f"Summary: {conv['summary'][:100]}{'...' if len(conv['summary']) > 100 else ''}")
+                
+            click.echo("-" * 60)
+            
+    except Exception as e:
+        click.echo(click.style(f"❌ Error retrieving conversations: {str(e)}", fg='red'))
 
 
 # Create CLI group

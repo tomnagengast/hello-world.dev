@@ -4,6 +4,7 @@ Core conversation management system that orchestrates the entire pipeline.
 
 import os
 import threading
+import time
 from queue import Queue, Empty
 from typing import Optional, Dict, Any
 from dataclasses import dataclass
@@ -61,52 +62,64 @@ class ConversationManager:
         self.metrics_collector = MetricsCollector() if config.enable_metrics else None
         self.interruption_handler = InterruptionHandler() if config.enable_interruptions else None
         
-        # Thread references
+        # Thread references and coordination
         self.stt_thread = None
         self.ai_thread = None
         self.tts_thread = None
+        self.shutdown_event = threading.Event()
+        self.error_count = 0
+        self.max_retries = 3
         
     def _initialize_stt_provider(self) -> STTProvider:
         """Initialize the STT provider based on configuration."""
-        # PSEUDOCODE: Provider initialization
-        # if self.config.stt_provider == "whisperkit":
-        #     return WhisperKitProvider(
-        #         model="large-v3_turbo",
-        #         vad_enabled=True,
-        #         compute_units="cpuAndNeuralEngine"
-        #     )
-        # else:
-        #     raise ValueError(f"Unknown STT provider: {self.config.stt_provider}")
-        pass
+        if self.config.mock_mode:
+            from mocks.providers import MockSTTProvider
+            return MockSTTProvider()
+        elif self.config.stt_provider == "whisperkit":
+            from ..providers.stt.whisperkit import WhisperKitProvider
+            return WhisperKitProvider(
+                model="large-v3_turbo",
+                vad_enabled=True,
+                compute_units="cpuAndNeuralEngine"
+            )
+        else:
+            raise ValueError(f"Unknown STT provider: {self.config.stt_provider}")
         
     def _initialize_ai_provider(self) -> AIProvider:
         """Initialize the AI provider based on configuration."""
-        # PSEUDOCODE: Provider initialization
-        # if self.config.ai_provider == "claude":
-        #     return ClaudeProvider(
-        #         system_prompt=SYSTEM_PROMPT,
-        #         streaming=True
-        #     )
-        # elif self.config.ai_provider == "gemini":
-        #     return GeminiProvider(
-        #         system_prompt=SYSTEM_PROMPT,
-        #         streaming=True
-        #     )
-        # else:
-        #     raise ValueError(f"Unknown AI provider: {self.config.ai_provider}")
-        pass
+        system_prompt = "You are a helpful AI assistant engaged in a natural voice conversation. Respond concisely and naturally."
+        
+        if self.config.mock_mode:
+            from mocks.providers import MockAIProvider
+            return MockAIProvider(system_prompt=system_prompt, streaming=True)
+        elif self.config.ai_provider == "claude":
+            from ..providers.ai.claude import ClaudeProvider
+            return ClaudeProvider(
+                system_prompt=system_prompt,
+                streaming=True
+            )
+        elif self.config.ai_provider == "gemini":
+            from ..providers.ai.gemini import GeminiProvider
+            return GeminiProvider(
+                system_prompt=system_prompt,
+                streaming=True
+            )
+        else:
+            raise ValueError(f"Unknown AI provider: {self.config.ai_provider}")
         
     def _initialize_tts_provider(self) -> TTSProvider:
         """Initialize the TTS provider based on configuration."""
-        # PSEUDOCODE: Provider initialization
-        # if self.config.tts_provider == "elevenlabs":
-        #     return ElevenLabsProvider(
-        #         voice_id="default",
-        #         streaming=True
-        #     )
-        # else:
-        #     raise ValueError(f"Unknown TTS provider: {self.config.tts_provider}")
-        pass
+        if self.config.mock_mode:
+            from mocks.providers import MockTTSProvider
+            return MockTTSProvider()
+        elif self.config.tts_provider == "elevenlabs":
+            from ..providers.tts.elevenlabs import ElevenLabsProvider
+            return ElevenLabsProvider(
+                voice_id="default",
+                streaming=True
+            )
+        else:
+            raise ValueError(f"Unknown TTS provider: {self.config.tts_provider}")
     
     def start(self, project_path: Optional[str] = None):
         """Start the conversation system."""
@@ -119,11 +132,25 @@ class ConversationManager:
         
         # Set running flag
         self.is_running = True
+        self.shutdown_event.clear()
+        
+        # Initialize providers
+        try:
+            self.stt_provider.initialize()
+            self.ai_provider.initialize()
+            self.tts_provider.initialize()
+        except Exception as e:
+            logger.error("Failed to initialize providers", error=str(e))
+            raise
+        
+        # Start metrics collection
+        if self.metrics_collector:
+            self.metrics_collector.start_session(self.current_session.id)
         
         # Start provider threads
-        self.stt_thread = threading.Thread(target=self._stt_worker, daemon=True)
-        self.ai_thread = threading.Thread(target=self._ai_worker, daemon=True)
-        self.tts_thread = threading.Thread(target=self._tts_worker, daemon=True)
+        self.stt_thread = threading.Thread(target=self._stt_worker, daemon=True, name="STT-Worker")
+        self.ai_thread = threading.Thread(target=self._ai_worker, daemon=True, name="AI-Worker")
+        self.tts_thread = threading.Thread(target=self._tts_worker, daemon=True, name="TTS-Worker")
         
         self.stt_thread.start()
         self.ai_thread.start()
@@ -135,22 +162,32 @@ class ConversationManager:
         """Stop the conversation system gracefully."""
         logger.info("Stopping conversation system")
         
-        # Set stop flag
+        # Set stop flags
         self.is_running = False
+        self.shutdown_event.set()
         
         # Stop providers
-        # PSEUDOCODE: Provider cleanup
-        # self.stt_provider.stop()
-        # self.ai_provider.stop()
-        # self.tts_provider.stop()
+        try:
+            if self.stt_provider:
+                self.stt_provider.stop()
+            if self.ai_provider:
+                self.ai_provider.stop()
+            if self.tts_provider:
+                self.tts_provider.stop()
+        except Exception as e:
+            logger.warning("Error stopping providers", error=str(e))
         
         # Wait for threads to finish
-        if self.stt_thread:
-            self.stt_thread.join(timeout=5)
-        if self.ai_thread:
-            self.ai_thread.join(timeout=5)
-        if self.tts_thread:
-            self.tts_thread.join(timeout=5)
+        threads = [self.stt_thread, self.ai_thread, self.tts_thread]
+        for thread in threads:
+            if thread and thread.is_alive():
+                thread.join(timeout=5)
+                if thread.is_alive():
+                    logger.warning(f"Thread {thread.name} did not terminate gracefully")
+        
+        # End metrics collection
+        if self.metrics_collector:
+            self.metrics_collector.end_session()
             
         # Save session
         if self.current_session:
@@ -162,141 +199,204 @@ class ConversationManager:
         """STT worker thread - processes audio and produces transcripts."""
         logger.debug("STT worker started")
         
-        while self.is_running:
+        retry_count = 0
+        while self.is_running and not self.shutdown_event.is_set():
             try:
-                # PSEUDOCODE: STT processing
-                # for transcript in self.stt_provider.stream_transcripts():
-                #     if not self.is_running:
-                #         break
-                #         
-                #     # Check for interruption
-                #     if self.interruption_handler and transcript.is_speech_start:
-                #         self.handle_interruption()
-                #         
-                #     # Add to transcript queue
-                #     self.transcript_queue.put(transcript)
-                #     
-                #     # Record metrics
-                #     if self.metrics_collector:
-                #         self.metrics_collector.record_stt_latency(transcript.latency)
-                #         
-                #     # Add to session history
-                #     if self.current_session:
-                #         self.current_session.add_user_message(transcript.text)
-                
-                pass
+                # Stream transcripts from STT provider
+                for transcript in self.stt_provider.stream_transcripts():
+                    if not self.is_running or self.shutdown_event.is_set():
+                        break
+                        
+                    # Check for interruption
+                    if self.interruption_handler and transcript.is_speech_start and self.tts_playing:
+                        logger.debug("Speech detected during TTS playback - handling interruption")
+                        self.handle_interruption()
+                        
+                    # Skip empty transcripts
+                    if not transcript.text.strip():
+                        continue
+                        
+                    # Add to transcript queue
+                    self.transcript_queue.put(transcript)
+                    logger.debug("Transcript added to queue", text=transcript.text[:50])
+                    
+                    # Record metrics
+                    if self.metrics_collector and transcript.latency:
+                        self.metrics_collector.record_stt_latency(transcript.latency)
+                        
+                    # Add to session history
+                    if self.current_session:
+                        # Note: session history handled in session_manager
+                        pass
+                        
+                # Reset retry count on successful operation
+                retry_count = 0
                 
             except Exception as e:
-                logger.error("STT worker error", error=str(e))
-                # PSEUDOCODE: Error recovery
-                # self._handle_stt_error(e)
+                logger.error("STT worker error", error=str(e), retry_count=retry_count)
+                self._handle_stt_error(e)
+                retry_count += 1
+                
+                if retry_count >= self.max_retries:
+                    logger.error("STT worker exceeded max retries, stopping")
+                    self.is_running = False
+                    break
+                    
+                # Wait before retry
+                time.sleep(min(2 ** retry_count, 10))  # Exponential backoff
+                
+        logger.debug("STT worker stopped")
                 
     def _ai_worker(self):
         """AI worker thread - processes transcripts and generates responses."""
         logger.debug("AI worker started")
         
-        while self.is_running:
+        while self.is_running and not self.shutdown_event.is_set():
             try:
-                # Get transcript from queue
-                transcript = self.transcript_queue.get(timeout=0.1)
+                # Get transcript from queue with timeout
+                try:
+                    transcript = self.transcript_queue.get(timeout=0.5)
+                except Empty:
+                    continue
+                    
+                logger.debug("Processing transcript", text=transcript.text[:50])
+                start_time = time.time()
                 
-                # PSEUDOCODE: AI processing
-                # start_time = time.time()
-                # 
-                # # Stream AI response
-                # for response_chunk in self.ai_provider.stream_response(transcript):
-                #     if not self.is_running:
-                #         break
-                #         
-                #     # Check for interruption
-                #     if self.interruption_handler and self.interruption_handler.is_interrupted:
-                #         logger.debug("AI response interrupted")
-                #         break
-                #         
-                #     # Add to response queue
-                #     self.response_queue.put(response_chunk)
-                #     
-                #     # Record first token latency
-                #     if self.metrics_collector and response_chunk.is_first:
-                #         latency = time.time() - start_time
-                #         self.metrics_collector.record_ai_latency(latency)
-                #         
-                # # Add complete response to session
-                # if self.current_session:
-                #     self.current_session.add_ai_message(response_chunk.full_text)
+                # Stream AI response
+                full_response = ""
+                first_token_recorded = False
                 
-                pass
-                
-            except Empty:
-                continue
+                for response_chunk in self.ai_provider.stream_response(transcript.text):
+                    if not self.is_running or self.shutdown_event.is_set():
+                        break
+                        
+                    # Check for interruption
+                    if self.interruption_handler and self.interruption_handler.is_interrupted_atomic():
+                        logger.debug("AI response interrupted")
+                        self.ai_provider.stop_streaming()
+                        break
+                        
+                    # Add to response queue if not final
+                    if not response_chunk.is_final:
+                        self.response_queue.put(response_chunk)
+                        
+                    # Record first token latency
+                    if self.metrics_collector and response_chunk.is_first and not first_token_recorded:
+                        latency_ms = (time.time() - start_time) * 1000
+                        self.metrics_collector.record_ai_latency(latency_ms)
+                        first_token_recorded = True
+                        
+                    # Accumulate full response
+                    if response_chunk.is_final:
+                        full_response = response_chunk.full_text
+                        
+                # Record completed interaction
+                if self.metrics_collector and full_response:
+                    self.metrics_collector.record_interaction()
+                    
+                # Add complete response to session
+                if self.current_session and full_response:
+                    # Note: session history handled in session_manager
+                    pass
+                    
             except Exception as e:
                 logger.error("AI worker error", error=str(e))
-                # PSEUDOCODE: Error recovery
-                # self._handle_ai_error(e)
+                if self.metrics_collector:
+                    self.metrics_collector.record_error("ai", str(e))
+                    
+                # Continue processing other transcripts
+                time.sleep(0.1)
+                
+        logger.debug("AI worker stopped")
                 
     def _tts_worker(self):
         """TTS worker thread - converts text to speech and plays audio."""
         logger.debug("TTS worker started")
         
-        while self.is_running:
+        while self.is_running and not self.shutdown_event.is_set():
             try:
-                # Get response from queue
-                response = self.response_queue.get(timeout=0.1)
+                # Get response from queue with timeout
+                try:
+                    response = self.response_queue.get(timeout=0.5)
+                except Empty:
+                    continue
+                    
+                logger.debug("Processing TTS response", text=response.text[:50])
+                self.tts_playing = True
+                start_time = time.time()
+                first_audio_recorded = False
                 
-                # PSEUDOCODE: TTS processing
-                # self.tts_playing = True
-                # start_time = time.time()
-                # 
-                # # Stream TTS audio
-                # for audio_chunk in self.tts_provider.stream_audio(response):
-                #     if not self.is_running:
-                #         break
-                #         
-                #     # Check for interruption
-                #     if self.interruption_handler and self.interruption_handler.is_interrupted:
-                #         logger.debug("TTS playback interrupted")
-                #         self.tts_provider.stop_playback()
-                #         break
-                #         
-                #     # Play audio chunk
-                #     self.tts_provider.play_chunk(audio_chunk)
-                #     
-                #     # Record first audio latency
-                #     if self.metrics_collector and audio_chunk.is_first:
-                #         latency = time.time() - start_time
-                #         self.metrics_collector.record_tts_latency(latency)
-                #         
-                # self.tts_playing = False
-                
-                pass
-                
-            except Empty:
-                continue
+                try:
+                    # Stream TTS audio
+                    for audio_chunk in self.tts_provider.stream_audio(response.text):
+                        if not self.is_running or self.shutdown_event.is_set():
+                            break
+                            
+                        # Check for interruption
+                        if self.interruption_handler and self.interruption_handler.is_interrupted_atomic():
+                            logger.debug("TTS playback interrupted")
+                            self.tts_provider.stop_playback()
+                            break
+                            
+                        # Play audio chunk
+                        self.tts_provider.play_chunk(audio_chunk)
+                        
+                        # Record first audio latency
+                        if self.metrics_collector and audio_chunk.is_first and not first_audio_recorded:
+                            latency_ms = (time.time() - start_time) * 1000
+                            self.metrics_collector.record_tts_latency(latency_ms)
+                            first_audio_recorded = True
+                            
+                except Exception as e:
+                    logger.error("TTS streaming error", error=str(e))
+                    if self.metrics_collector:
+                        self.metrics_collector.record_error("tts", str(e))
+                        
+                finally:
+                    self.tts_playing = False
+                    
             except Exception as e:
                 logger.error("TTS worker error", error=str(e))
-                # PSEUDOCODE: Error recovery
-                # self._handle_tts_error(e)
+                if self.metrics_collector:
+                    self.metrics_collector.record_error("tts", str(e))
+                    
+                # Continue processing other responses
+                time.sleep(0.1)
+                
+        logger.debug("TTS worker stopped")
                 
     def handle_interruption(self):
         """Handle user interruption during AI/TTS output."""
         logger.info("Handling user interruption")
         
-        # Clear queues
+        # Record interruption in metrics
+        if self.metrics_collector:
+            self.metrics_collector.record_interruption()
+        
+        # Clear response queue to stop pending TTS
+        cleared_responses = 0
         while not self.response_queue.empty():
             try:
                 self.response_queue.get_nowait()
+                cleared_responses += 1
             except Empty:
                 break
                 
+        logger.debug("Cleared response queue", cleared_responses=cleared_responses)
+                
         # Stop TTS playback
         if self.tts_playing:
-            # PSEUDOCODE: Stop TTS
-            # self.tts_provider.stop_playback()
+            try:
+                self.tts_provider.stop_playback()
+            except Exception as e:
+                logger.warning("Error stopping TTS playback", error=str(e))
             self.tts_playing = False
             
         # Notify AI provider to stop streaming
-        # PSEUDOCODE: Stop AI streaming
-        # self.ai_provider.stop_streaming()
+        try:
+            self.ai_provider.stop_streaming()
+        except Exception as e:
+            logger.warning("Error stopping AI streaming", error=str(e))
         
         # Reset interruption flag
         if self.interruption_handler:
@@ -312,4 +412,30 @@ class ConversationManager:
             "session_id": self.current_session.id if self.current_session else None,
             "transcript_queue_size": self.transcript_queue.qsize(),
             "response_queue_size": self.response_queue.qsize(),
+            "error_count": self.error_count,
+            "providers_status": {
+                "stt": self.stt_provider.get_status() if self.stt_provider else None,
+                "ai": self.ai_provider.get_status() if self.ai_provider else None,
+                "tts": self.tts_provider.get_status() if self.tts_provider else None
+            }
         }
+        
+    def _handle_stt_error(self, error: Exception) -> None:
+        """Handle STT provider errors with recovery attempts."""
+        self.error_count += 1
+        
+        if self.metrics_collector:
+            self.metrics_collector.record_error("stt", str(error))
+            
+        logger.warning("STT error occurred, attempting recovery", 
+                      error=str(error), error_count=self.error_count)
+        
+        # Attempt to restart STT provider
+        try:
+            if hasattr(self.stt_provider, 'stop'):
+                self.stt_provider.stop()
+            time.sleep(1)  # Brief pause before restart
+            self.stt_provider.initialize()
+            logger.info("STT provider restarted successfully")
+        except Exception as e:
+            logger.error("Failed to restart STT provider", error=str(e))
