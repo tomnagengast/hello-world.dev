@@ -38,6 +38,7 @@ def setup_logging(
         log_level = "DEBUG"
 
     # Create logs directory
+    log_path = None
     if log_file:
         log_dir = Path(log_dir or "./logs")
         log_dir.mkdir(exist_ok=True)
@@ -99,10 +100,10 @@ def setup_logging(
     root_logger.addHandler(console_handler)
 
     # Configure file logging if enabled
-    if log_file:
+    if log_file and log_path is not None:
         # Create file handler with rotation
         file_handler = logging.handlers.RotatingFileHandler(
-            log_path,
+            log_path,  # type: ignore
             maxBytes=file_rotation_mb * 1024 * 1024,  # Convert MB to bytes
             backupCount=file_backup_count,
             encoding="utf-8",
@@ -120,7 +121,7 @@ def setup_logging(
         logger = structlog.get_logger()
         logger.info(
             "Logging configured",
-            log_file=str(log_path),
+            log_file=str(log_path),  # type: ignore
             log_level=log_level,
             log_format=log_format,
         )
@@ -257,12 +258,12 @@ def cleanup_old_logs(
         return
 
     cutoff_time = datetime.now().timestamp() - (keep_days * 24 * 60 * 60)
+    logger = get_logger("logging.cleanup")
 
     for log_file in log_dir.glob("*.log*"):
         try:
             if log_file.stat().st_mtime < cutoff_time:
                 log_file.unlink()
-                logger = get_logger("logging.cleanup")
                 logger.info(
                     "Removed old log file",
                     file=str(log_file),
@@ -270,7 +271,6 @@ def cleanup_old_logs(
                     / (24 * 60 * 60),
                 )
         except OSError as e:
-            logger = get_logger("logging.cleanup")
             logger.warning(
                 "Failed to remove old log file", file=str(log_file), error=str(e)
             )

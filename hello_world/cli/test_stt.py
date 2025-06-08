@@ -6,7 +6,7 @@ import sys
 import time
 import tempfile
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict, Any
 import structlog
 
 
@@ -151,6 +151,7 @@ def stt(
             )
 
     temp_file_path: Optional[Path] = None
+    stt_provider = None
 
     try:
         # Handle stdin input
@@ -176,7 +177,7 @@ def stt(
             from ..providers.stt.whisperkit_file import WhisperKitFileProvider
 
             # Use file-based WhisperKit provider
-            provider_kwargs = {"verbose": debug}
+            provider_kwargs: Dict[str, Any] = {"verbose": debug}
             if model:
                 provider_kwargs["model"] = model
 
@@ -279,7 +280,8 @@ def stt(
             cleanup_temp_file(temp_file_path)
 
         try:
-            stt_provider.stop()
+            if stt_provider is not None:
+                stt_provider.stop()
         except Exception:
             pass
 

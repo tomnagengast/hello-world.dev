@@ -101,7 +101,7 @@ class TTSTestUtility:
                 raise
             return False
         finally:
-            if self.provider:
+            if self.provider is not None:
                 try:
                     self.provider.stop()
                 except Exception as e:
@@ -121,15 +121,16 @@ class TTSTestUtility:
             start_gen = time.time()
             audio_chunks = []
 
-            for chunk in self.provider.stream_audio(text):
-                audio_chunks.append(chunk)
+            if self.provider is not None:
+                for chunk in self.provider.stream_audio(text):
+                    audio_chunks.append(chunk)
 
-                # Play chunk immediately for real-time playback
-                self.provider.play_chunk(chunk)
+                    # Play chunk immediately for real-time playback
+                    self.provider.play_chunk(chunk)
 
-                # Handle interruption
-                if chunk.is_final:
-                    break
+                    # Handle interruption
+                    if chunk.is_final:
+                        break
 
             gen_time = time.time() - start_gen
             self.metrics["generation_time"] = gen_time
@@ -137,18 +138,19 @@ class TTSTestUtility:
 
             # Wait for playback to complete
             # Check provider status to see if playing
-            while True:
-                status = self.provider.get_status()
-                if not status.get("is_playing", False):
-                    break
-                time.sleep(0.1)
+            if self.provider is not None:
+                while True:
+                    status = self.provider.get_status()
+                    if not status.get("is_playing", False):
+                        break
+                    time.sleep(0.1)
 
             print("✅ Playback completed successfully")
             return True
 
         except KeyboardInterrupt:
             print("\n⏹️  Playback stopped by user")
-            if self.provider:
+            if self.provider is not None:
                 self.provider.stop_playback()
             return True
         except Exception as e:
@@ -173,13 +175,14 @@ class TTSTestUtility:
             audio_data = io.BytesIO()
             chunk_count = 0
 
-            for chunk in self.provider.stream_audio(text):
-                if chunk.data:
-                    audio_data.write(chunk.data)
-                    chunk_count += 1
+            if self.provider is not None:
+                for chunk in self.provider.stream_audio(text):
+                    if chunk.data:
+                        audio_data.write(chunk.data)
+                        chunk_count += 1
 
-                if chunk.is_final:
-                    break
+                    if chunk.is_final:
+                        break
 
             gen_time = time.time() - start_gen
 
@@ -223,7 +226,7 @@ class TTSTestUtility:
         )
 
         # Add provider status if available
-        if self.provider:
+        if self.provider is not None:
             try:
                 provider_status = self.provider.get_status()
                 self.metrics["provider_status"] = provider_status

@@ -58,7 +58,7 @@ class InterruptionHandler:
         current_time = time.time()
 
         # Calculate audio level (RMS)
-        audio_level = np.sqrt(np.mean(audio_data.astype(np.float32) ** 2))
+        audio_level = float(np.sqrt(np.mean(audio_data.astype(np.float32) ** 2)))
         self.audio_levels.append(audio_level)
 
         # Update dynamic threshold periodically
@@ -123,12 +123,12 @@ class InterruptionHandler:
         # Calculate noise floor (minimum of recent levels)
         recent_levels = list(self.audio_levels)
         recent_levels.sort()
-        self.noise_floor = np.mean(
-            recent_levels[: len(recent_levels) // 4]
+        self.noise_floor = float(
+            np.mean(recent_levels[: len(recent_levels) // 4])
         )  # Bottom 25%
 
         # Set dynamic threshold above noise floor
-        self.dynamic_threshold = max(self.noise_floor * 3.0, 0.01)
+        self.dynamic_threshold = max(float(self.noise_floor * 3.0), 0.01)
 
         logger.debug(
             "Updated audio thresholds",

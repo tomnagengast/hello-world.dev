@@ -219,87 +219,97 @@ class Settings:
             self.tts_provider = os.getenv("TTS_PROVIDER", "elevenlabs")
 
             # System prompts
-            if os.getenv("SYSTEM_PROMPT_DEFAULT"):
-                self.system_prompts.default = os.getenv("SYSTEM_PROMPT_DEFAULT")
+            system_prompt = os.getenv("SYSTEM_PROMPT_DEFAULT")
+            if system_prompt is not None:
+                self.system_prompts.default = system_prompt
 
             # Audio settings
-            if os.getenv("AUDIO_SAMPLE_RATE"):
-                self.audio.sample_rate = int(os.getenv("AUDIO_SAMPLE_RATE"))
-            if os.getenv("AUDIO_CHANNELS"):
-                self.audio.channels = int(os.getenv("AUDIO_CHANNELS"))
-            if os.getenv("AUDIO_CHUNK_SIZE"):
-                self.audio.chunk_size = int(os.getenv("AUDIO_CHUNK_SIZE"))
+            sample_rate = os.getenv("AUDIO_SAMPLE_RATE")
+            if sample_rate is not None:
+                self.audio.sample_rate = int(sample_rate)
+            channels = os.getenv("AUDIO_CHANNELS")
+            if channels is not None:
+                self.audio.channels = int(channels)
+            chunk_size = os.getenv("AUDIO_CHUNK_SIZE")
+            if chunk_size is not None:
+                self.audio.chunk_size = int(chunk_size)
 
             # Provider-specific overrides
-            if os.getenv("WHISPERKIT_MODEL"):
-                self.providers.whisperkit_model = os.getenv("WHISPERKIT_MODEL")
-            if os.getenv("WHISPERKIT_COMPUTE_UNITS"):
-                self.providers.whisperkit_compute_units = os.getenv(
-                    "WHISPERKIT_COMPUTE_UNITS"
-                )
-            if os.getenv("WHISPERKIT_VAD_ENABLED"):
+            whisperkit_model = os.getenv("WHISPERKIT_MODEL")
+            if whisperkit_model is not None:
+                self.providers.whisperkit_model = whisperkit_model
+            whisperkit_compute_units = os.getenv("WHISPERKIT_COMPUTE_UNITS")
+            if whisperkit_compute_units is not None:
+                self.providers.whisperkit_compute_units = whisperkit_compute_units
+            whisperkit_vad_enabled = os.getenv("WHISPERKIT_VAD_ENABLED")
+            if whisperkit_vad_enabled is not None:
                 self.providers.whisperkit_vad_enabled = (
-                    os.getenv("WHISPERKIT_VAD_ENABLED").lower() == "true"
+                    whisperkit_vad_enabled.lower() == "true"
                 )
 
-            if os.getenv("CLAUDE_OUTPUT_FORMAT"):
-                self.providers.claude_output_format = os.getenv("CLAUDE_OUTPUT_FORMAT")
+            claude_output_format = os.getenv("CLAUDE_OUTPUT_FORMAT")
+            if claude_output_format is not None:
+                self.providers.claude_output_format = claude_output_format
 
-            if os.getenv("GEMINI_MODEL"):
-                self.providers.gemini_model = os.getenv("GEMINI_MODEL")
-            if os.getenv("GEMINI_TEMPERATURE"):
-                self.providers.gemini_temperature = float(
-                    os.getenv("GEMINI_TEMPERATURE")
-                )
-            if os.getenv("GEMINI_MAX_TOKENS"):
-                self.providers.gemini_max_tokens = int(os.getenv("GEMINI_MAX_TOKENS"))
+            gemini_model = os.getenv("GEMINI_MODEL")
+            if gemini_model is not None:
+                self.providers.gemini_model = gemini_model
+            gemini_temperature = os.getenv("GEMINI_TEMPERATURE")
+            if gemini_temperature is not None:
+                self.providers.gemini_temperature = float(gemini_temperature)
+            gemini_max_tokens = os.getenv("GEMINI_MAX_TOKENS")
+            if gemini_max_tokens is not None:
+                self.providers.gemini_max_tokens = int(gemini_max_tokens)
 
-            if os.getenv("ELEVENLABS_VOICE_ID"):
-                self.providers.elevenlabs_voice_id = os.getenv("ELEVENLABS_VOICE_ID")
-            if os.getenv("ELEVENLABS_MODEL_ID"):
-                self.providers.elevenlabs_model_id = os.getenv("ELEVENLABS_MODEL_ID")
-            if os.getenv("ELEVENLABS_OUTPUT_FORMAT"):
-                self.providers.elevenlabs_output_format = os.getenv(
-                    "ELEVENLABS_OUTPUT_FORMAT"
-                )
+            elevenlabs_voice_id = os.getenv("ELEVENLABS_VOICE_ID")
+            if elevenlabs_voice_id is not None:
+                self.providers.elevenlabs_voice_id = elevenlabs_voice_id
+            elevenlabs_model_id = os.getenv("ELEVENLABS_MODEL_ID")
+            if elevenlabs_model_id is not None:
+                self.providers.elevenlabs_model_id = elevenlabs_model_id
+            elevenlabs_output_format = os.getenv("ELEVENLABS_OUTPUT_FORMAT")
+            if elevenlabs_output_format is not None:
+                self.providers.elevenlabs_output_format = elevenlabs_output_format
 
             # Timeout overrides
-            if os.getenv("AI_RESPONSE_TIMEOUT"):
-                self.timeouts.ai_response_timeout = int(
-                    os.getenv("AI_RESPONSE_TIMEOUT")
-                )
-            if os.getenv("TTS_GENERATION_TIMEOUT"):
-                self.timeouts.tts_generation_timeout = int(
-                    os.getenv("TTS_GENERATION_TIMEOUT")
-                )
-            if os.getenv("WHISPERKIT_RESTART_TIMEOUT"):
+            ai_response_timeout = os.getenv("AI_RESPONSE_TIMEOUT")
+            if ai_response_timeout is not None:
+                self.timeouts.ai_response_timeout = int(ai_response_timeout)
+            tts_generation_timeout = os.getenv("TTS_GENERATION_TIMEOUT")
+            if tts_generation_timeout is not None:
+                self.timeouts.tts_generation_timeout = int(tts_generation_timeout)
+            whisperkit_restart_timeout = os.getenv("WHISPERKIT_RESTART_TIMEOUT")
+            if whisperkit_restart_timeout is not None:
                 self.timeouts.whisperkit_restart_timeout = int(
-                    os.getenv("WHISPERKIT_RESTART_TIMEOUT")
+                    whisperkit_restart_timeout
                 )
 
             # Retry settings
-            if os.getenv("MAX_RETRIES"):
-                self.retries.max_retries = int(os.getenv("MAX_RETRIES"))
-            if os.getenv("INITIAL_BACKOFF"):
-                self.retries.initial_backoff = float(os.getenv("INITIAL_BACKOFF"))
+            max_retries = os.getenv("MAX_RETRIES")
+            if max_retries is not None:
+                self.retries.max_retries = int(max_retries)
+            initial_backoff = os.getenv("INITIAL_BACKOFF")
+            if initial_backoff is not None:
+                self.retries.initial_backoff = float(initial_backoff)
 
             # Metrics settings
-            if os.getenv("METRICS_ENABLED"):
-                self.metrics.enabled = os.getenv("METRICS_ENABLED").lower() == "true"
-            if os.getenv("METRICS_COLLECTION_INTERVAL_MS"):
-                self.metrics.collection_interval_ms = int(
-                    os.getenv("METRICS_COLLECTION_INTERVAL_MS")
-                )
+            metrics_enabled = os.getenv("METRICS_ENABLED")
+            if metrics_enabled is not None:
+                self.metrics.enabled = metrics_enabled.lower() == "true"
+            metrics_collection_interval = os.getenv("METRICS_COLLECTION_INTERVAL_MS")
+            if metrics_collection_interval is not None:
+                self.metrics.collection_interval_ms = int(metrics_collection_interval)
 
             # Logging settings
-            if os.getenv("LOG_LEVEL"):
-                self.logging.level = os.getenv("LOG_LEVEL")
-            if os.getenv("LOG_FORMAT"):
-                self.logging.format = os.getenv("LOG_FORMAT")
-            if os.getenv("LOG_FILE_ENABLED"):
-                self.logging.file_enabled = (
-                    os.getenv("LOG_FILE_ENABLED").lower() == "true"
-                )
+            log_level = os.getenv("LOG_LEVEL")
+            if log_level is not None:
+                self.logging.level = log_level
+            log_format = os.getenv("LOG_FORMAT")
+            if log_format is not None:
+                self.logging.format = log_format
+            log_file_enabled = os.getenv("LOG_FILE_ENABLED")
+            if log_file_enabled is not None:
+                self.logging.file_enabled = log_file_enabled.lower() == "true"
 
     def save_to_file(self, file_path: Optional[Union[str, Path]] = None) -> None:
         """Save current settings to file."""

@@ -37,3 +37,4 @@ Following best practices from the agentic coding runbook:
 - Ensure on-device processing where possible
 - Always test builds after working and address any failures or warnings
 - Ensure all files end with a single new line
+- Run ruff and pyright with uv to validate python

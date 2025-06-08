@@ -5,17 +5,10 @@ import tempfile
 import json
 import time
 from pathlib import Path
-from datetime import datetime, date
 from unittest.mock import patch
 
 from hello_world.state.session_manager import SessionManager
-from hello_world.metrics.collector import (
-    MetricsCollector,
-    LatencyMetric,
-    ThroughputMetric,
-    ErrorMetric,
-    MetricsTimer,
-)
+from hello_world.metrics.collector import MetricsCollector
 from hello_world.config.settings import Settings
 from hello_world.utils.logging import setup_logging, JsonFormatter
 
@@ -117,155 +110,125 @@ class TestMetricsCollector:
         with tempfile.TemporaryDirectory() as tmp_dir:
             collector = MetricsCollector(tmp_dir)
 
-            metric = LatencyMetric(
-                metric_type="stt",
-                start_time=1.0,
-                end_time=1.5,
-                duration_ms=500.0,
-                session_id="test_session",
-                conversation_id="test_conv",
-                timestamp=datetime.now().isoformat(),
-                metadata={"model": "whisper"},
-            )
+            # Start a session
+            collector.start_session("test_session")
 
-            collector.record_latency(metric)
+            # Record STT latency
+            collector.record_stt_latency(500.0)
 
-            # Wait briefly for background processing
-            time.sleep(0.1)
+            # Get summary
+            summary = collector.get_summary()
 
-            # Check that metrics were written
-            daily_metrics = collector.get_daily_metrics()
+            assert summary["stt_latency_ms"]["samples"] == 1
+            assert summary["stt_latency_ms"]["avg"] == 500.0
 
-            # Find our metric
-            latency_metrics = [
-                m for m in daily_metrics if m.get("metric_type") == "stt"
-            ]
-            assert len(latency_metrics) >= 1
-
-    def test_timer_context_manager(self):
-        """Test the MetricsTimer context manager."""
+    def test_ai_latency_recording(self):
+        """Test recording AI response latency."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             collector = MetricsCollector(tmp_dir)
 
-            with MetricsTimer(
-                collector, "ai_response", "test_session", "test_conv"
-            ) as timer:
-                time.sleep(0.01)  # Sleep for 10ms
+            # Start a session
+            collector.start_session("test_session")
 
-            assert timer.duration_ms is not None
-            assert timer.duration_ms >= 10  # Should be at least 10ms
+            # Simulate AI response timing
+            start_time = time.time()
+            time.sleep(0.01)  # Sleep for 10ms
+            duration_ms = (time.time() - start_time) * 1000
 
-            # Wait for background processing
-            time.sleep(0.1)
+            # Record AI latency
+            collector.record_ai_latency(duration_ms)
 
-            daily_metrics = collector.get_daily_metrics()
-            ai_metrics = [
-                m for m in daily_metrics if m.get("metric_type") == "ai_response"
-            ]
-            assert len(ai_metrics) >= 1
+            # Get summary
+            summary = collector.get_summary()
 
-    def test_throughput_metric_recording(self):
-        """Test recording throughput metrics."""
+            assert summary["ai_latency_ms"]["samples"] == 1
+            assert summary["ai_latency_ms"]["avg"] >= 10  # Should be at least 10ms
+
+    def test_interaction_recording(self):
+        """Test recording interactions."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             collector = MetricsCollector(tmp_dir)
 
-            metric = ThroughputMetric(
-                metric_type="messages_per_second",
-                count=10,
-                time_window_seconds=1.0,
-                timestamp=datetime.now().isoformat(),
-                session_id="test_session",
-                conversation_id="test_conv",
-            )
+            # Start a session
+            collector.start_session("test_session")
 
-            collector.record_throughput(metric)
+            # Record multiple interactions
+            for _ in range(10):
+                collector.record_interaction()
 
-            # Wait for background processing
-            time.sleep(0.1)
+            # Get summary
+            summary = collector.get_summary()
 
-            daily_metrics = collector.get_daily_metrics()
-            throughput_metrics = [
-                m for m in daily_metrics if m.get("category") == "throughput"
-            ]
-            assert len(throughput_metrics) >= 1
+            assert summary["total_interactions"] == 10
 
-    def test_error_metric_recording(self):
-        """Test recording error metrics."""
+    def test_error_recording(self):
+        """Test recording errors."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             collector = MetricsCollector(tmp_dir)
 
-            metric = ErrorMetric(
-                error_type="ConnectionError",
+            # Start a session
+            collector.start_session("test_session")
+
+            # Record an error
+            collector.record_error(
                 component="elevenlabs",
-                error_message="Failed to connect",
-                timestamp=datetime.now().isoformat(),
-                session_id="test_session",
-                conversation_id="test_conv",
+                error="Failed to connect",
+                metadata={"error_type": "ConnectionError"},
             )
 
-            collector.record_error(metric)
+            # Get summary
+            summary = collector.get_summary()
 
-            # Wait for background processing
-            time.sleep(0.1)
-
-            daily_metrics = collector.get_daily_metrics()
-            error_metrics = [m for m in daily_metrics if m.get("category") == "error"]
-            assert len(error_metrics) >= 1
+            assert summary["total_errors"] == 1
 
     def test_metrics_summary(self):
         """Test metrics summary generation."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             collector = MetricsCollector(tmp_dir)
 
+            # Start a session
+            collector.start_session("test_session")
+
             # Record some test metrics
             for i in range(5):
-                metric = LatencyMetric(
-                    metric_type="stt",
-                    start_time=i,
-                    end_time=i + 0.1,
-                    duration_ms=100.0 + i * 10,  # 100, 110, 120, 130, 140
-                    session_id=f"session_{i}",
-                    conversation_id="test_conv",
-                    timestamp=datetime.now().isoformat(),
-                    metadata={},
-                )
-                collector.record_latency(metric)
+                collector.record_stt_latency(100.0 + i * 10)  # 100, 110, 120, 130, 140
+                collector.record_interaction()
 
-            # Wait for background processing
-            time.sleep(0.2)
+            # Get summary
+            summary = collector.get_summary()
 
-            summary = collector.get_metrics_summary(days=1)
+            assert summary["total_interactions"] == 5
+            assert summary["stt_latency_ms"]["samples"] == 5
+            assert summary["stt_latency_ms"]["min"] == 100.0
+            assert summary["stt_latency_ms"]["max"] == 140.0
+            assert summary["stt_latency_ms"]["avg"] == 120.0  # (100+110+120+130+140)/5
 
-            assert summary["total_metrics"] >= 5
-            assert "latency" in summary
-            if "stt" in summary["latency"]:
-                stt_stats = summary["latency"]["stt"]
-                assert stt_stats["count"] >= 5
-                assert stt_stats["avg_ms"] >= 100
-                assert stt_stats["min_ms"] >= 100
-                assert stt_stats["max_ms"] >= 140
-
-    def test_cleanup_old_metrics(self):
-        """Test cleanup of old metrics files."""
+    def test_save_and_load_metrics(self):
+        """Test saving and loading session metrics."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             collector = MetricsCollector(tmp_dir)
 
-            # Create an old metrics file
-            old_date = date.fromordinal(date.today().toordinal() - 35)  # 35 days ago
-            old_file = collector._get_daily_file(old_date)
-            old_file.write_text("[]")
+            # Start a session and record metrics
+            session_id = "test_session_save"
+            collector.start_session(session_id)
 
-            # Create a recent metrics file
-            recent_date = date.today()
-            recent_file = collector._get_daily_file(recent_date)
-            recent_file.write_text("[]")
+            collector.record_stt_latency(100.0)
+            collector.record_ai_latency(200.0)
+            collector.record_tts_latency(150.0)
+            collector.record_interaction()
 
-            # Run cleanup
-            collector.cleanup_old_metrics(keep_days=30)
+            # End session and save
+            collector.end_session()
+            collector.save_metrics()
 
-            # Check results
-            assert not old_file.exists()
-            assert recent_file.exists()
+            # Load the session metrics
+            loaded_metrics = collector.load_session_metrics(session_id)
+
+            assert loaded_metrics is not None
+            assert loaded_metrics.session_id == session_id
+            assert loaded_metrics.total_interactions == 1
+            assert len(loaded_metrics.stt_latencies) == 1
+            assert loaded_metrics.stt_latencies[0] == 100.0
 
 
 class TestSettings:
@@ -431,12 +394,19 @@ class TestIntegration:
             session = session_manager.create_session("/test/project")
 
             # Record metrics during session
-            with MetricsTimer(
-                metrics_collector, "end_to_end", session.id, session.conversation_id
-            ):
-                session.add_user_message("Hello")
-                time.sleep(0.01)  # Simulate processing
-                session.add_ai_message("Hi there!")
+            # Start metrics collection
+            metrics_collector.start_session(session.id)
+
+            # Simulate end-to-end timing
+            start_time = time.time()
+            session.add_user_message("Hello")
+            time.sleep(0.01)  # Simulate processing
+            session.add_ai_message("Hi there!")
+            duration_ms = (time.time() - start_time) * 1000
+
+            # Record the latency
+            metrics_collector.record_e2e_latency(duration_ms)
+            metrics_collector.record_interaction()
 
             # Save session
             session_manager.save_session(session)
@@ -446,15 +416,11 @@ class TestIntegration:
             assert loaded_session is not None
             assert len(loaded_session.messages) == 2
 
-            # Wait for metrics processing
-            time.sleep(0.1)
-
             # Verify metrics were recorded
-            daily_metrics = metrics_collector.get_daily_metrics()
-            end_to_end_metrics = [
-                m for m in daily_metrics if m.get("metric_type") == "end_to_end"
-            ]
-            assert len(end_to_end_metrics) >= 1
+            summary = metrics_collector.get_summary()
+            assert summary["total_interactions"] == 1
+            assert summary["e2e_latency_ms"]["samples"] == 1
+            assert summary["e2e_latency_ms"]["avg"] >= 10  # Should be at least 10ms
 
     def test_settings_with_all_components(self):
         """Test that settings work with all components."""

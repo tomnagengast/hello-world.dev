@@ -67,7 +67,11 @@ class MockSTTProvider(STTProvider):
 class MockAIProvider(AIProvider):
     """Mock AI provider that generates fake responses."""
 
-    def __init__(self, system_prompt: str, streaming: bool = True):
+    def __init__(
+        self,
+        system_prompt: str = "You are a helpful assistant.",
+        streaming: bool = True,
+    ):
         super().__init__(system_prompt, streaming)
         self.is_streaming = False
         self.mock_responses = [
@@ -174,9 +178,9 @@ class MockTTSProvider(TTSProvider):
             # Simulate audio generation delay
             time.sleep(0.1)  # Reduced delay for testing
 
-    def play_chunk(self, audio_chunk: AudioChunk) -> None:
+    def play_chunk(self, chunk: AudioChunk) -> None:
         """Mock audio playback - just sleep to simulate timing."""
-        time.sleep(audio_chunk.duration_ms / 1000.0)
+        time.sleep(chunk.duration_ms / 1000.0 if chunk.duration_ms else 0)
 
     def stop_playback(self) -> None:
         """Stop mock audio playback."""
