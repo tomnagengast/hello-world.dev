@@ -20,9 +20,12 @@ FEATURE_OR_PLAN: $ARGUMENTS
 > For workstreams with more ambiguity, dispatch multiple teams to take a stab at implementation and we'll be able to pick the best one.
 > Once the worktrees are all set up and instructions are in place for the dev teams, simulate them by running claude code instances in parallel subprocesses. You'll need to manage the instances by resuming their work by referencing the session id returned after their first turn. You shouldn't be doing any work though, all coding, testing, and validation should be done by the dev team instances.
 
-## Available Tools
+## Resource
 
+- Git worktrees should be created in the `./.worktrees` directory
 - You and your instance can use the internet to look up references needed to complete the tasks
 - When dispatching workers, use the Claude Code SDK ([SDK Docs](https://docs.anthropic.com/en/docs/claude-code/sdk), [CLI Docs](https://docs.anthropic.com/en/docs/claude-code/cli-usage))
   - Take advantage of the `--output-format json` flag to store session IDs for workers so that they maintain context as they're completing their tasks
   - Workers should run using Claude Sonnet with `--model sonnet`
+- Use TMUX for session management
+  - Auto approve the initial Claude Code prompt with `tmux new -d -s claude '<team-id>'; sleep 1; tmux send -t claude Enter;`
