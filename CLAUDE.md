@@ -7,6 +7,7 @@ For details on the project's app functionality, refer to @README.md
 ## Important Files
 
 @pyproject.toml project dependencies
+@.claude/commands for user-defined claude commands
 
 ## Development Philosophy
 

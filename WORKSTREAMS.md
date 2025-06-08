@@ -4,10 +4,10 @@ The project has been divided into 5 parallel workstreams. Each has its own git w
 
 ## Worktree Locations
 
-All worktrees are in `../hello-world-worktrees/`:
+All worktrees are in `./.worktrees/`:
 
 ```bash
-hello-world-worktrees/
+.worktrees/
 ├── stt-whisperkit/     # Stream 1: Speech-to-Text
 ├── ai-providers/       # Stream 2: AI Providers
 ├── tts-elevenlabs/     # Stream 3: Text-to-Speech
@@ -16,8 +16,8 @@ hello-world-worktrees/
 ```
 
 ## Stream 1: STT WhisperKit Implementation
-**Branch**: `feature/stt-whisperkit`  
-**Worktree**: `../hello-world-worktrees/stt-whisperkit`  
+**Branch**: `feature/stt-whisperkit`
+**Worktree**: `../hello-world-worktrees/stt-whisperkit`
 **Owner**: Dev 1
 
 ### Tasks:
@@ -28,16 +28,16 @@ hello-world-worktrees/
 5. Create unit tests for STT provider
 
 ### Files to modify:
-- `conversation_system/providers/stt/whisperkit.py`
-- `conversation_system/providers/stt/base.py` (if needed)
+- `hello_world/providers/stt/whisperkit.py`
+- `hello_world/providers/stt/base.py` (if needed)
 
 ### Dependencies: None (can start immediately)
 
 ---
 
 ## Stream 2: AI Providers Implementation
-**Branch**: `feature/ai-providers`  
-**Worktree**: `../hello-world-worktrees/ai-providers`  
+**Branch**: `feature/ai-providers`
+**Worktree**: `../hello-world-worktrees/ai-providers`
 **Owner**: Dev 2 & Dev 3
 
 ### Tasks:
@@ -45,24 +45,24 @@ hello-world-worktrees/
    - Handle Claude Code SDK subprocess communication
    - Parse streaming JSON responses
    - Implement conversation history management
-   
+
 2. **Dev 3**: Implement Gemini provider using API
    - Set up google-generativeai client
    - Handle streaming responses
    - Implement retry logic
 
 ### Files to modify:
-- `conversation_system/providers/ai/claude.py`
-- `conversation_system/providers/ai/gemini.py`
-- `conversation_system/providers/ai/base.py` (if needed)
+- `hello_world/providers/ai/claude.py`
+- `hello_world/providers/ai/gemini.py`
+- `hello_world/providers/ai/base.py` (if needed)
 
 ### Dependencies: None (can start immediately)
 
 ---
 
 ## Stream 3: TTS ElevenLabs Implementation
-**Branch**: `feature/tts-elevenlabs`  
-**Worktree**: `../hello-world-worktrees/tts-elevenlabs`  
+**Branch**: `feature/tts-elevenlabs`
+**Worktree**: `../hello-world-worktrees/tts-elevenlabs`
 **Owner**: Dev 4
 
 ### Tasks:
@@ -73,16 +73,16 @@ hello-world-worktrees/
 5. Create unit tests for TTS provider
 
 ### Files to modify:
-- `conversation_system/providers/tts/elevenlabs.py`
-- `conversation_system/providers/tts/base.py` (if needed)
+- `hello_world/providers/tts/elevenlabs.py`
+- `hello_world/providers/tts/base.py` (if needed)
 
 ### Dependencies: None (can start immediately)
 
 ---
 
 ## Stream 4: State Management & Metrics
-**Branch**: `feature/state-metrics`  
-**Worktree**: `../hello-world-worktrees/state-metrics`  
+**Branch**: `feature/state-metrics`
+**Worktree**: `../hello-world-worktrees/state-metrics`
 **Owner**: Dev 5
 
 ### Tasks:
@@ -93,16 +93,16 @@ hello-world-worktrees/
 5. Create reporting functionality
 
 ### Files to modify:
-- `conversation_system/state/session_manager.py`
-- `conversation_system/metrics/collector.py`
+- `hello_world/state/session_manager.py`
+- `hello_world/metrics/collector.py`
 
 ### Dependencies: None (can start immediately)
 
 ---
 
 ## Stream 5: CLI Interface & Core Integration
-**Branch**: `feature/cli-interface`  
-**Worktree**: `../hello-world-worktrees/cli-interface`  
+**Branch**: `feature/cli-interface`
+**Worktree**: `../hello-world-worktrees/cli-interface`
 **Owner**: Dev 6 (Integration Lead)
 
 ### Tasks:
@@ -113,11 +113,11 @@ hello-world-worktrees/
 5. Create integration tests
 
 ### Files to modify:
-- `conversation_system/cli/main.py`
-- `conversation_system/core/conversation_manager.py`
-- `conversation_system/utils/interruption_handler.py`
-- `conversation_system/utils/logging.py`
-- `conversation_system/config/settings.py`
+- `hello_world/cli/main.py`
+- `hello_world/core/conversation_manager.py`
+- `hello_world/utils/interruption_handler.py`
+- `hello_world/utils/logging.py`
+- `hello_world/config/settings.py`
 
 ### Dependencies: Will need basic implementations from other streams for integration testing
 

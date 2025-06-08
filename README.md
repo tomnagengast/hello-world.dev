@@ -22,7 +22,7 @@ uv sync
 conversation start
 
 # Or run directly with uv (automatically handles environment)
-uv run python -m conversation_system.cli.main start
+uv run python -m hello_world.cli.main start
 
 # With project association
 conversation start --project /path/to/project
@@ -39,7 +39,7 @@ conversation conversations /path/to/project
 
 ## Architecture
 
-See [conversation_system/README.md](conversation_system/README.md) for detailed architecture documentation.
+See [hello_world/README.md](hello_world/README.md) for detailed architecture documentation.
 
 ## Requirements
 
@@ -51,7 +51,7 @@ See [conversation_system/README.md](conversation_system/README.md) for detailed 
 ## Documentation
 
 - [PRD](specs/2025_06_07_14_35_00_conversation_system.md) - Product Requirements Document
-- [Architecture](conversation_system/README.md) - Technical architecture guide
+- [Architecture](hello_world/README.md) - Technical architecture guide
 
 ## Resources
 - [WhisperKit Large v3 Turbo Docs](https://huggingface.co/openai/whisper-large-v3-turbo)

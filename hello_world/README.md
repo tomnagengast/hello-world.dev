@@ -5,7 +5,7 @@ This is the project architecture for the conversation system. The implementation
 ## Directory Structure
 
 ```
-conversation_system/
+hello_world/
 ├── core/
 │   └── conversation_manager.py    # Main orchestrator
 ├── providers/
@@ -112,7 +112,7 @@ uv sync
 conversation start
 
 # Or use uv run for development
-uv run python -m conversation_system.cli.main start
+uv run python -m hello_world.cli.main start
 
 # With project association
 conversation start --project /path/to/project

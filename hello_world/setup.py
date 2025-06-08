@@ -19,7 +19,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "conversation=conversation_system.cli.main:cli",
+            "conversation=hello_world.cli.main:cli",
         ],
     },
 )
